@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="ServiceGovernance.Registry.Agent" Version="0.1.0-build0001" />
   </ItemGroup>
 
 </Project>

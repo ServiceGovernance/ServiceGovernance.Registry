@@ -24,7 +24,7 @@ namespace ServiceGovernance.Registry
         /// <exception cref="ArgumentNullException">cache
         /// or
         /// get</exception>
-        public static async Task<T> GetAsync<T>(this ICache<T> cache, string key, TimeSpan duration, Func<Task<T>> get)
+        public static Task<T> GetAsync<T>(this ICache<T> cache, string key, TimeSpan duration, Func<Task<T>> get)
             where T : class
         {
             if (cache == null)
@@ -33,19 +33,24 @@ namespace ServiceGovernance.Registry
                 throw new ArgumentNullException(nameof(get));
 
             if (key == null)
-                return null;
+                return Task.FromResult<T>(null);
 
-            var item = await cache.GetAsync(key);
+            return GetAsyncCore();
 
-            if (item == null)
+            async Task<T> GetAsyncCore()
             {
-                item = await get();
+                var item = await cache.GetAsync(key);
 
-                if (item != null)
-                    await cache.SetAsync(key, item, duration);
+                if (item == null)
+                {
+                    item = await get();
+
+                    if (item != null)
+                        await cache.SetAsync(key, item, duration);
+                }
+
+                return item;
             }
-
-            return item;
         }
     }
 }
