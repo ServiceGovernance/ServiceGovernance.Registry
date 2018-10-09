@@ -1,4 +1,8 @@
-# Startup
+# ServiceGovernance.Registry
+
+[![Build status](https://ci.appveyor.com/api/projects/status/iti2hroxya5fkbrw?svg=true)](https://ci.appveyor.com/project/twenzel/servicegovernance-registry)
+[![NuGet Version](http://img.shields.io/nuget/v/ServiceGovernance.Registry.svg?style=flat)](https://www.nuget.org/packages/ServiceGovernance.Registry/)
+[![License](https://img.shields.io/badge/license-Apache-blue.svg)](LICENSE)
 
 ServiceRegistry is a combination of middleware and services.
 All configuration is done in your startup class.
@@ -34,7 +38,6 @@ Use of these configuration APIs are designed for use when prototyping, developin
 * `AddServiceStore`
     Adds `IServiceStore` implementation for reading and storing services (You can also use the already implemented versions for EntityFramework or Redis).
 
-	
 ## Caching
 
 Service configuration data is used frequently by ServiceRegistry.

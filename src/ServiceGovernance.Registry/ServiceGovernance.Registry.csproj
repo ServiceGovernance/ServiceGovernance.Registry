@@ -3,6 +3,17 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
 
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>ServiceGovernance.Registry</PackageId>
+    <Description>ASP.NET core middleware for providing a Service Registry</Description>
+    <Authors>Toni Wenzel</Authors>
+    <Version>$(SemVer)</Version>
+
+    <PackageTags>service ServiceGovernance Governance serviceregistry registry</PackageTags>
+    <PackageIconUrl>https://github.com/ServiceGovernance/Home/raw/master/artwork/logos/logo_128.png</PackageIconUrl>
+    <PackageLicenseUrl>https://github.com/ServiceGovernance/ServiceGovernance.Registry/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/ServiceGovernance/ServiceGovernance.Registry</PackageProjectUrl>
+
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
