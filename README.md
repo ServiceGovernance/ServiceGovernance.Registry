@@ -7,14 +7,22 @@
 ServiceRegistry is a combination of middleware and services.
 All configuration is done in your startup class.
 
-## Configuring services
+## Usage
 
 You add the ServiceRegistry services to the DI system by calling:
 
 ```CSharp
 public void ConfigureServices(IServiceCollection services)
 {
-    var builder = services.AddServiceRegistry();
+    services.AddServiceRegistry();
+}
+
+public void Configure(IApplicationBuilder app)
+{
+    ...
+    app.UseServiceRegistry();
+    ...
+    app.UseMvc();
 }
 ```
 
@@ -30,9 +38,9 @@ By design, though, these collections are only created when the hosting applicati
 
 Use of these configuration APIs are designed for use when prototyping, developing, and/or testing where it is not necessary to dynamically consult database at runtime for the configuration data.
 
-* `AddInMemoryServices`
-    Registers `IServiceStore` implementation based on the in-memory collection of `Service` configuration objects.
-	
+* `AddInMemoryStore`
+    Registers `IServiceStore` implementation storing services as in-memory list. Optional arguments are services which will be added to the store.
+
 ## Additional services
 
 * `AddServiceStore`
@@ -58,16 +66,3 @@ If you wish to customize the caching behavior for the specific configuration obj
 
 The default implementation of the `ICache<T>` itself relies upon the `IMemoryCache` interface (and `MemoryCache` implementation) provided by .NET.
 If you wish to customize the in-memory caching behavior, you can replace the `IMemoryCache` implementation in the dependency injection system.
-
-## Configuring the pipeline
-
-You need to add ServiceRegistry to the pipeline by calling:
-
-```CSharp
-public void Configure(IApplicationBuilder app)
-{
-    app.UseServiceRegistry();
-}
-```
-
-There is no additional configuration for the middleware.
