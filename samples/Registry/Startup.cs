@@ -33,7 +33,7 @@ namespace Registry
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
 
             services.AddServiceRegistry()
-                .AddInMemoryServices(null);
+                .AddInMemoryStore();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

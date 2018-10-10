@@ -14,12 +14,12 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class ServiceRegistryBuilderExtensionsInMemory
     {
         /// <summary>
-        /// Adds the in memory services.
+        /// Adds the in-memory service store.
         /// </summary>
         /// <param name="builder">The builder.</param>
-        /// <param name="services">The services.</param>
+        /// <param name="services">A list of services which will be added to the in-memory store.</param>
         /// <returns></returns>
-        public static IServiceRegistryBuilder AddInMemoryServices(this IServiceRegistryBuilder builder, IEnumerable<Service> services)
+        public static IServiceRegistryBuilder AddInMemoryStore(this IServiceRegistryBuilder builder, params Service[] services)
         {
             builder.Services.AddSingleton(services);
             builder.AddServiceStore<InMemoryServiceStore>();
