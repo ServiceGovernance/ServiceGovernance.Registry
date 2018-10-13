@@ -67,10 +67,16 @@ namespace ServiceGovernance.Registry.Stores.InMemory
         /// <returns></returns>
         public Task StoreAsync(Service service)
         {
-            if (_services.Exists(s => s.ServiceId == service.ServiceId))
-                throw new ArgumentException($"Service with id {service.ServiceId} already exists!");
-
-            _services.Add(service);
+            var existing = _services.FirstOrDefault(s => s.ServiceId == service.ServiceId);
+            if (existing == null)
+            {
+                _services.Add(service);
+            }
+            else
+            {
+                existing.DisplayName = service.DisplayName;
+                existing.ServiceEndpoints = service.ServiceEndpoints;
+            }
 
             return Task.CompletedTask;
         }

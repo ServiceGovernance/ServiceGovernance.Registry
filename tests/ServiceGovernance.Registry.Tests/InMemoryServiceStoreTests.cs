@@ -162,7 +162,7 @@ namespace ServiceGovernance.Registry.Tests
             }
 
             [Test]
-            public void Throws_When_Service_Already_Exists()
+            public async Task Updates_Existing_Item()
             {
                 var services = new[] {
                     new Service() { ServiceId = "Test1" },
@@ -171,9 +171,12 @@ namespace ServiceGovernance.Registry.Tests
                 };
                 var store = new InMemoryServiceStore(services);
 
-                Func<Task> action = async () => await store.StoreAsync(new Service() { ServiceId = "Test2"});
+                await store.StoreAsync(new Service() { ServiceId = "Test2", ServiceEndpoints = new Uri[] { new Uri("Http://test.com")} });
 
-                action.Should().Throw<ArgumentException>().WithMessage("Service with id Test2 already exists!");
+                var service = await store.FindByServiceIdAsync("Test2");
+                service.Should().NotBeNull();
+                service.ServiceEndpoints.Should().HaveCount(1);
+                service.ServiceEndpoints[0].Should().Be(new Uri("http://test.com"));
             }
         }
     }
