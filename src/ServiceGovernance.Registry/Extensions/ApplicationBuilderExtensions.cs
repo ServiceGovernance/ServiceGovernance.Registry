@@ -24,7 +24,8 @@ namespace Microsoft.AspNetCore.Builder
             app.Validate();
 
             app.Map(RegisterEndpoint.Path, b => b.UseMiddleware<RegisterEndpoint>());
-            
+            app.Map(ServiceEndpoint.Path, b => b.UseMiddleware<ServiceEndpoint>());
+
             return app;
         }
 
