@@ -6,8 +6,6 @@ using NUnit.Framework;
 using ServiceGovernance.Registry.Models;
 using ServiceGovernance.Registry.Services;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,6 +16,7 @@ namespace ServiceGovernance.Registry.Tests
     {
         protected RegistrationTokenProvider _provider;
         protected Mock<IDataProtector> _dataProtector;
+        protected Mock<IDataProtectionProvider> _dataProtectionProvider;
         protected Configuration.ServiceRegistryOptions _options;
 
         [SetUp]
@@ -26,6 +25,10 @@ namespace ServiceGovernance.Registry.Tests
             _dataProtector = new Mock<IDataProtector>();
             _dataProtector.Setup(p => p.Protect(It.IsAny<byte[]>())).Returns<byte[]>(x => x);
             _dataProtector.Setup(p => p.Unprotect(It.IsAny<byte[]>())).Returns<byte[]>(x => x);
+
+            _dataProtectionProvider = new Mock<IDataProtectionProvider>();
+            _dataProtectionProvider.Setup(p => p.CreateProtector(It.IsAny<string>())).Returns(_dataProtector.Object);
+
             _options = new Configuration.ServiceRegistryOptions();
 
             CreateProvider();
@@ -33,18 +36,19 @@ namespace ServiceGovernance.Registry.Tests
 
         protected void CreateProvider()
         {
-            _provider = new RegistrationTokenProvider(_dataProtector.Object, _options, new Mock<ILogger<RegistrationTokenProvider>>().Object);
+            _provider = new RegistrationTokenProvider(_dataProtectionProvider.Object, _options, new Mock<ILogger<RegistrationTokenProvider>>().Object);
         }
 
-        public class GenerateAsyncMethod: RegistrationTokenProviderTests
+        public class GenerateAsyncMethod : RegistrationTokenProviderTests
         {
             [Test]
             public async Task Returns_Token()
             {
-                var token = await _provider.GenerateAsync(new Service() {
+                var token = await _provider.GenerateAsync(new Service()
+                {
                     ServiceId = "TestService",
                     DisplayName = "Test Service",
-                    ServiceEndpoints = new Uri[] { new Uri("http://test.com")}
+                    ServiceEndpoints = new Uri[] { new Uri("http://test.com") }
                 });
 
                 token.Should().NotBeNullOrWhiteSpace();
