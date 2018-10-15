@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace ServiceGovernance.Registry.Models
+namespace ServiceGovernance.Registry.Tests.Models
 {
-    public class ServiceRegistrationInputModel
+    public class ServiceRegistration
     {
         /// <summary>
         /// Gets or sets a unique service identifier
