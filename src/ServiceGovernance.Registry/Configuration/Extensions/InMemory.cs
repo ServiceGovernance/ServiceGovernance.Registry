@@ -5,6 +5,7 @@ using ServiceGovernance.Registry.Models;
 using ServiceGovernance.Registry.Services;
 using ServiceGovernance.Registry.Stores.InMemory;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

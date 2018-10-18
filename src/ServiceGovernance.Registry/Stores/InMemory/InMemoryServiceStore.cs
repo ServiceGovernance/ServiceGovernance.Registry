@@ -17,7 +17,7 @@ namespace ServiceGovernance.Registry.Stores.InMemory
         /// Initializes a new instance of the <see cref="InMemoryClientStore"/> class.
         /// </summary>
         /// <param name="services">The services.</param>
-        public InMemoryServiceStore(IEnumerable<Service> services)
+        public InMemoryServiceStore(Service[] services)
         {
             if (services.HasDuplicates(m => m.ServiceId))
             {

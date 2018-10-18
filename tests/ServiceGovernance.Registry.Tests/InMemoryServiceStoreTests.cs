@@ -42,7 +42,7 @@ namespace ServiceGovernance.Registry.Tests
             {
                 var services = new List<Service>();
 
-                Action action = () => new InMemoryServiceStore(services);
+                Action action = () => new InMemoryServiceStore(services.ToArray());
 
                 action.Should().NotThrow<ArgumentException>();
             }
