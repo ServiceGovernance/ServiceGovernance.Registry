@@ -25,9 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
             setupAction?.Invoke(options);
 
             services.AddSingleton(options);
-            services.AddScoped<IRegistrationTokenProvider, RegistrationTokenProvider>();
-
-            services.AddMvcCore();
+            services.AddScoped<IRegistrationTokenProvider, RegistrationTokenProvider>();            
 
             return new ServiceRegistryBuilder(services);
         }

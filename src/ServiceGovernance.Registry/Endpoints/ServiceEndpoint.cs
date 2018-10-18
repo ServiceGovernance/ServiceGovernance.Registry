@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using ServiceGovernance.Registry.Stores;
 using System.Threading.Tasks;
 
@@ -42,7 +41,7 @@ namespace ServiceGovernance.Registry.Endpoints
             if (service != null)
                 await context.WriteModelAsync(service);
             else
-                await context.ExecuteResultAsync(new NotFoundResult());
+                context.Response.StatusCode = 404;
         }
 
         private async Task GetAllServicesAsync(HttpContext context, IServiceStore store)

@@ -63,7 +63,7 @@ namespace ServiceGovernance.Registry.Tests
                 services[0].DisplayName.Should().Be("First Api");
 
                 services[1].ServiceId.Should().Be("Api2");
-                services[1].DisplayName.Should().Be("second Api");
+                services[1].DisplayName.Should().Be("Second Api");
             }
         }
 
