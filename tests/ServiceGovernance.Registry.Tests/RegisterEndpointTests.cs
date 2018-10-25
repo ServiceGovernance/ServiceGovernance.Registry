@@ -54,6 +54,8 @@ namespace ServiceGovernance.Registry.Tests
                 var content = await responseMessage.Content.ReadAsStringAsync();
 
                 content.Should().NotBeNullOrWhiteSpace();
+
+                TODO check for registered service
             }
 
             [Test]
@@ -108,7 +110,7 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public void Unregister_Removes_Endpoints()
             {
-
+                TODO check for registered service
             }
 
             [Test]
