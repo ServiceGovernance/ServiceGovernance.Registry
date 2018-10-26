@@ -27,7 +27,7 @@ namespace Api1
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddServiceRegistryAgent(options => {
-                options.Registry = new Uri("https://localhost:5005");
+                options.Registry = new Uri("http://localhost:5005");
                 options.ServiceIdentifier = "Api1";
                 options.ServiceDisplayName = "My Api";
                 });

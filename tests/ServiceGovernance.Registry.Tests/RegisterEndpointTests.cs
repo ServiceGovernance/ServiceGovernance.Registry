@@ -43,7 +43,8 @@ namespace ServiceGovernance.Registry.Tests
                 {
                     ServiceIdentifier = "RegisterTest",
                     ServiceDisplayName = "Test service",
-                    Endpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") }
+                    Endpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") },
+                    MachineIpAddress = "10.10.0.1"
                 };
 
                 var requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
@@ -67,6 +68,8 @@ namespace ServiceGovernance.Registry.Tests
                 service.DisplayName.Should().Be(registration.ServiceDisplayName);
                 service.ServiceEndpoints.Should().HaveCount(registration.Endpoints.Length);
                 service.ServiceEndpoints.Should().Contain(registration.Endpoints);
+                service.IpAddresses.Should().HaveCount(1);
+                service.IpAddresses.Should().Contain(registration.MachineIpAddress);
             }
 
             [Test]
@@ -76,7 +79,8 @@ namespace ServiceGovernance.Registry.Tests
                 {
                     ServiceIdentifier = "",
                     ServiceDisplayName = "Test service",
-                    Endpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") }
+                    Endpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") },
+                    MachineIpAddress = "10.10.0.1"
                 };
 
                 var requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
@@ -91,7 +95,7 @@ namespace ServiceGovernance.Registry.Tests
             {
                 var registration = new ServiceRegistration()
                 {
-                    ServiceIdentifier = "ServiceId",
+                    ServiceIdentifier = "ServiceIdNoEndpoints",
                     ServiceDisplayName = "Test service"
                 };
 
@@ -100,6 +104,24 @@ namespace ServiceGovernance.Registry.Tests
                 var responseMessage = await _client.SendAsync(requestMessage);
 
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            }
+
+            [Test]
+            public async Task Returns_No_BadRequest_When_IpAddress_Is_Empty()
+            {
+                var registration = new ServiceRegistration()
+                {
+                    ServiceIdentifier = "ServiceIdNoIpAddress",
+                    ServiceDisplayName = "Test service",
+                    Endpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") },
+                    MachineIpAddress = ""
+                };
+
+                var requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(registration));
+                var responseMessage = await _client.SendAsync(requestMessage);
+
+                responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
             }
         }
 
@@ -119,14 +141,15 @@ namespace ServiceGovernance.Registry.Tests
         public class Delete : RegisterEndpointTests
         {
             [Test]
-            public async Task Unregister_Removes_Endpoints()
+            public async Task Unregister_Removes_Endpoints_And_IpAddress()
             {
                 // register endpoints 1
                 var registration = new ServiceRegistration()
                 {
                     ServiceIdentifier = "DeleteEndpointTest",
                     ServiceDisplayName = "Test service",
-                    Endpoints = new Uri[] { new Uri("http://test01.com"), new Uri("https://otherurl01.com:5000") }
+                    Endpoints = new Uri[] { new Uri("http://test01.com"), new Uri("https://otherurl01.com:5000") },
+                    MachineIpAddress = "10.10.0.1"
                 };
 
                 var requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
@@ -140,7 +163,8 @@ namespace ServiceGovernance.Registry.Tests
                 {
                     ServiceIdentifier = registration.ServiceIdentifier,
                     ServiceDisplayName = registration.ServiceDisplayName,
-                    Endpoints = new Uri[] { new Uri("http://test02.com"), new Uri("https://otherurl02.com:5000") }
+                    Endpoints = new Uri[] { new Uri("http://test02.com"), new Uri("https://otherurl02.com:5000") },
+                    MachineIpAddress = "10.10.0.2"
                 };
 
                 requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
@@ -159,7 +183,10 @@ namespace ServiceGovernance.Registry.Tests
                 service.DisplayName.Should().Be(registration.ServiceDisplayName);
                 service.ServiceEndpoints.Should().HaveCount(4);
                 service.ServiceEndpoints.Should().Contain(registration.Endpoints);
-                service.ServiceEndpoints.Should().Contain(registration2.Endpoints);
+                service.ServiceEndpoints.Should().Contain(registration2.Endpoints);                
+                service.IpAddresses.Should().HaveCount(2);
+                service.IpAddresses.Should().Contain(registration.MachineIpAddress);
+                service.IpAddresses.Should().Contain(registration2.MachineIpAddress);
 
                 // remove endpoints from registration 1
                 requestMessage = new HttpRequestMessage(new HttpMethod("DELETE"), "/v1/register/" + tokenRegistration1);
@@ -176,6 +203,9 @@ namespace ServiceGovernance.Registry.Tests
                 service.ServiceEndpoints.Should().HaveCount(2);
                 service.ServiceEndpoints.Should().NotContain(registration.Endpoints);
                 service.ServiceEndpoints.Should().Contain(registration2.Endpoints);
+                service.IpAddresses.Should().HaveCount(1);
+                service.IpAddresses.Should().NotContain(registration.MachineIpAddress);
+                service.IpAddresses.Should().Contain(registration2.MachineIpAddress);
             }
 
             [Test]
@@ -186,7 +216,8 @@ namespace ServiceGovernance.Registry.Tests
                 {
                     ServiceIdentifier = "DeleteServiceTest",
                     ServiceDisplayName = "Test service",
-                    Endpoints = new Uri[] { new Uri("http://test01.com"), new Uri("https://otherurl01.com:5000") }
+                    Endpoints = new Uri[] { new Uri("http://test01.com"), new Uri("https://otherurl01.com:5000") },
+                    MachineIpAddress = "10.10.0.1"
                 };
 
                 var requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
@@ -204,6 +235,8 @@ namespace ServiceGovernance.Registry.Tests
                 service.DisplayName.Should().Be(registration.ServiceDisplayName);
                 service.ServiceEndpoints.Should().HaveCount(2);
                 service.ServiceEndpoints.Should().Contain(registration.Endpoints);
+                service.IpAddresses.Should().HaveCount(1);
+                service.IpAddresses.Should().Contain(registration.MachineIpAddress);
 
                 // remove endpoints from registration 
                 requestMessage = new HttpRequestMessage(new HttpMethod("DELETE"), "/v1/register/" + tokenRegistration1);

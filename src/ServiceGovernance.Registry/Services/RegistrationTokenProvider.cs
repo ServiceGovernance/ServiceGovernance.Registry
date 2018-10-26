@@ -32,22 +32,23 @@ namespace ServiceGovernance.Registry.Services
             _tokenLifespan = options.RegisterTokenLifespan;
         }
 
-        public Task<string> GenerateAsync(Service service)
+        public Task<string> GenerateAsync(ServiceRegistrationInputModel serviceRegistration)
         {
             using (var ms = new MemoryStream())
             {
                 using (var writer = new BinaryWriter(ms, DefaultEncoding, true))
                 {
                     writer.Write(DateTimeOffset.UtcNow.UtcTicks);
-                    writer.Write(service.ServiceId);
-                    writer.Write(string.Join(";", service.ServiceEndpoints.Select(u => u.ToString())));
+                    writer.Write(serviceRegistration.ServiceIdentifier);
+                    writer.Write(string.Join(";", serviceRegistration.Endpoints.Select(u => u.ToString())));
+                    writer.Write(serviceRegistration.MachineIpAddress);
                 }
                 var protectedBytes = _protector.Protect(ms.ToArray());
                 return Task.FromResult(Convert.ToBase64String(protectedBytes));
             }
         }
 
-        public Task<Service> ValidateAsync(string token)
+        public Task<ServiceRegistrationInputModel> ValidateAsync(string token)
         {
             try
             {
@@ -60,16 +61,18 @@ namespace ServiceGovernance.Registry.Services
                     if (expirationTime < DateTimeOffset.UtcNow)
                     {
                         _logger.LogDebug("Token (created at {creationTime}) was expired.", creationTime);
-                        return Task.FromResult<Service>(null);
+                        return Task.FromResult<ServiceRegistrationInputModel>(null);
                     }
 
                     var serviceId = reader.ReadString();
                     var urls = reader.ReadString();
+                    var ipAddress = reader.ReadString();
 
-                    return Task.FromResult(new Service()
+                    return Task.FromResult(new ServiceRegistrationInputModel()
                     {
-                        ServiceId = serviceId,
-                        ServiceEndpoints = urls.Split(';').Select(url => new Uri(url)).ToArray()
+                        ServiceIdentifier = serviceId,
+                        Endpoints = urls.Split(';').Select(url => new Uri(url)).ToArray(),
+                        MachineIpAddress = ipAddress
                     });
                 }
             }
@@ -78,7 +81,7 @@ namespace ServiceGovernance.Registry.Services
                 _logger.LogError(ex, "Error on validating registration token.");
             }
 
-            return Task.FromResult<Service>(null);
+            return Task.FromResult<ServiceRegistrationInputModel>(null);
         }
     }
 }

@@ -31,7 +31,9 @@ namespace ServiceGovernance.Registry.Endpoints
                     await GetServiceAsync(context, store, context.Request.Path.Value.Substring(1));
             }
             else
+            {
                 await _next.Invoke(context);
+            }
         }
 
         private async Task GetServiceAsync(HttpContext context, IServiceStore store, string serviceId)

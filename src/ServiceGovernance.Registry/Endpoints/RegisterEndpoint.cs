@@ -30,12 +30,18 @@ namespace ServiceGovernance.Registry.Endpoints
         public async Task InvokeAsync(HttpContext context, IServiceStore store, IRegistrationTokenProvider tokenProvider)
         {
             if (HttpMethods.IsPost(context.Request.Method))
+            {
                 await RegisterServiceAsync(context, store, tokenProvider);
+            }
             else if (HttpMethods.IsDelete(context.Request.Method))
+            {
                 await UnregisterServiceAsync(context, store, tokenProvider);
+            }
             else
+            {
                 // Call the next delegate/middleware in the pipeline
                 await _next(context);
+            }
         }
 
         private async Task UnregisterServiceAsync(HttpContext context, IServiceStore store, IRegistrationTokenProvider tokenProvider)
@@ -44,22 +50,24 @@ namespace ServiceGovernance.Registry.Endpoints
             {
                 var registerToken = context.Request.Path.Value.Substring(1);
 
-                var service = await tokenProvider.ValidateAsync(registerToken);
+                var serviceRegistration = await tokenProvider.ValidateAsync(registerToken);
 
-                if (service != null)
+                if (serviceRegistration != null)
                 {
-                    var item = await store.FindByServiceIdAsync(service.ServiceId);
+                    var item = await store.FindByServiceIdAsync(serviceRegistration.ServiceIdentifier);
 
                     if (item != null)
                     {
                         // remove endpoints from service
-                        item.ServiceEndpoints = item.ServiceEndpoints.Except(service.ServiceEndpoints).ToArray();
+                        item.ServiceEndpoints = item.ServiceEndpoints.Except(serviceRegistration.Endpoints).ToArray();
+                        // remove ipaddress from service
+                        item.IpAddresses = item.IpAddresses.Except(new[] { serviceRegistration.MachineIpAddress }).ToArray();
 
                         // remove service when no endpoints registered anymore
                         if (item.ServiceEndpoints.Length > 0)
                             await store.StoreAsync(item);
                         else
-                            await store.RemoveAsync(service.ServiceId);
+                            await store.RemoveAsync(serviceRegistration.ServiceIdentifier);
                     }
                 }
             }
@@ -86,17 +94,19 @@ namespace ServiceGovernance.Registry.Endpoints
                                 DisplayName = model.ServiceDisplayName,
                                 ServiceId = model.ServiceIdentifier,
                                 ServiceEndpoints = model.Endpoints,
+                                IpAddresses = new[] { model.MachineIpAddress }
                             };
                         }
                         else
                         {
                             service.ServiceEndpoints = service.ServiceEndpoints.Concat(model.Endpoints).ToArray();
+                            service.IpAddresses = service.IpAddresses.Concat(new[] { model.MachineIpAddress }).ToArray();
                         }
 
                         await store.StoreAsync(service);
 
                         context.Response.ContentType = "text/plain";
-                        await context.Response.WriteAsync(await tokenProvider.GenerateAsync(service));
+                        await context.Response.WriteAsync(await tokenProvider.GenerateAsync(model));
                     }
                     else
                     {

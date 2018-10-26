@@ -44,11 +44,12 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Returns_Token()
             {
-                var token = await _provider.GenerateAsync(new Service()
+                var token = await _provider.GenerateAsync(new ServiceRegistrationInputModel()
                 {
-                    ServiceId = "TestService",
-                    DisplayName = "Test Service",
-                    ServiceEndpoints = new Uri[] { new Uri("http://test.com") }
+                    ServiceIdentifier = "TestService",
+                    ServiceDisplayName = "Test Service",
+                    Endpoints = new Uri[] { new Uri("http://test.com") },
+                    MachineIpAddress = "10.10.0.2"
                 });
 
                 token.Should().NotBeNullOrWhiteSpace();
@@ -60,19 +61,21 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Returns_Service_For_Valid_Token()
             {
-                var token = await _provider.GenerateAsync(new Service()
+                var token = await _provider.GenerateAsync(new ServiceRegistrationInputModel()
                 {
-                    ServiceId = "TestService",
-                    DisplayName = "Test Service",
-                    ServiceEndpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") }
+                    ServiceIdentifier = "TestService",
+                    ServiceDisplayName = "Test Service",
+                    Endpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") },
+                    MachineIpAddress = "10.10.0.1"
                 });
 
                 var service = await _provider.ValidateAsync(token);
                 service.Should().NotBeNull();
-                service.ServiceId.Should().Be("TestService");
-                service.ServiceEndpoints.Should().HaveCount(2);
-                service.ServiceEndpoints[0].Should().Be(new Uri("http://test.com"));
-                service.ServiceEndpoints[1].Should().Be(new Uri("https://otherurl.com:5000"));
+                service.ServiceIdentifier.Should().Be("TestService");
+                service.Endpoints.Should().HaveCount(2);
+                service.Endpoints[0].Should().Be(new Uri("http://test.com"));
+                service.Endpoints[1].Should().Be(new Uri("https://otherurl.com:5000"));
+                service.MachineIpAddress.Should().Be("10.10.0.1");                
             }
 
             [Test]
@@ -95,11 +98,12 @@ namespace ServiceGovernance.Registry.Tests
                 _options.RegisterTokenLifespan = TimeSpan.FromMilliseconds(20);
                 CreateProvider();
 
-                var token = await _provider.GenerateAsync(new Service()
+                var token = await _provider.GenerateAsync(new ServiceRegistrationInputModel()
                 {
-                    ServiceId = "TestService",
-                    DisplayName = "Test Service",
-                    ServiceEndpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") }
+                    ServiceIdentifier = "TestService",
+                    ServiceDisplayName = "Test Service",
+                    Endpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") },
+                    MachineIpAddress = "10.10.0.1"
                 });
 
                 var service = await _provider.ValidateAsync(token);

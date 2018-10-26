@@ -23,5 +23,10 @@ namespace ServiceGovernance.Registry.Models
         /// Gets or sets the urls the service is available on
         /// </summary>
         public Uri[] ServiceEndpoints { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ip addresses the service is runnin on
+        /// </summary>
+        public string[] IpAddresses { get; set; }
     }
 }

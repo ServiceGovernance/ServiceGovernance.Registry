@@ -18,5 +18,10 @@ namespace ServiceGovernance.Registry.Tests.Models
         /// Gets or sets the urls the service is available on
         /// </summary>
         public Uri[] Endpoints { get; set; }
+
+        /// <summary>
+        /// Get or sets the Ip address of the machine the service is running on
+        /// </summary>
+        public string MachineIpAddress { get; set; }
     }
 }

@@ -67,7 +67,7 @@ namespace ServiceGovernance.Registry.Stores.InMemory
         /// <returns></returns>
         public Task StoreAsync(Service service)
         {
-            var existing = _services.FirstOrDefault(s => s.ServiceId == service.ServiceId);
+            var existing = _services.Find(s => s.ServiceId == service.ServiceId);
             if (existing == null)
             {
                 _services.Add(service);
