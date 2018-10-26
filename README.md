@@ -170,7 +170,7 @@ This endpoint returns all registered services.
 
 |Url|Method|Type
 |-|-|-|
-|/v1/service/Get|
+|/v1/service|Get|
 
 ### Parameter
 
