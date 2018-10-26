@@ -39,9 +39,9 @@ namespace ServiceGovernance.Registry.Services
                 using (var writer = new BinaryWriter(ms, DefaultEncoding, true))
                 {
                     writer.Write(DateTimeOffset.UtcNow.UtcTicks);
-                    writer.Write(serviceRegistration.ServiceIdentifier);
+                    writer.Write(serviceRegistration.ServiceId);
                     writer.Write(string.Join(";", serviceRegistration.Endpoints.Select(u => u.ToString())));
-                    writer.Write(serviceRegistration.MachineIpAddress);
+                    writer.Write(serviceRegistration.IpAddress ?? "");
                 }
                 var protectedBytes = _protector.Protect(ms.ToArray());
                 return Task.FromResult(Convert.ToBase64String(protectedBytes));
@@ -70,9 +70,9 @@ namespace ServiceGovernance.Registry.Services
 
                     return Task.FromResult(new ServiceRegistrationInputModel()
                     {
-                        ServiceIdentifier = serviceId,
+                        ServiceId = serviceId,
                         Endpoints = urls.Split(';').Select(url => new Uri(url)).ToArray(),
-                        MachineIpAddress = ipAddress
+                        IpAddress = ipAddress
                     });
                 }
             }

@@ -29,13 +29,16 @@ namespace ServiceGovernance.Registry.Tests
                      new Service {
                       ServiceId = "Api1",
                       DisplayName = "First Api",
-                      ServiceEndpoints = new []{ new Uri("http://api1-01.com"), new Uri("http://api1-02.com")}
+                      Endpoints = new []{ new Uri("http://api1-01.com"), new Uri("http://api1-02.com")},
+                      IpAddresses = new[]{ "10.10.0.1"},
+                      PublicUrls = new Uri[]{ new Uri("http://api1.com")}
                   },
                    new Service
                    {
                        ServiceId = "Api2",
                        DisplayName = "Second Api",
-                       ServiceEndpoints = new[] { new Uri("http://api2-01.com"), new Uri("http://api2-02.com") }
+                       Endpoints = new[] { new Uri("http://api2-01.com"), new Uri("http://api2-02.com") },
+                       IpAddresses = new[]{ "10.10.0.2", "10.10.0.3"  }
                    }
                   });
                   services.AddDataProtection().PersistKeysToInMemory();
@@ -80,9 +83,12 @@ namespace ServiceGovernance.Registry.Tests
                 var service = JsonConvert.DeserializeObject<Service>(content);                
                 service.ServiceId.Should().Be("Api2");
                 service.DisplayName.Should().Be("Second Api");
-                service.ServiceEndpoints.Should().HaveCount(2);
-                service.ServiceEndpoints[0].Should().Be(new Uri("http://api2-01.com"));
-                service.ServiceEndpoints[1].Should().Be(new Uri("http://api2-02.com"));
+                service.Endpoints.Should().HaveCount(2);
+                service.Endpoints[0].Should().Be(new Uri("http://api2-01.com"));
+                service.Endpoints[1].Should().Be(new Uri("http://api2-02.com"));
+                service.IpAddresses.Should().HaveCount(2);
+                service.IpAddresses[0].Should().Be("10.10.0.2");
+                service.IpAddresses[1].Should().Be("10.10.0.3");
             }
 
             [Test]
@@ -90,6 +96,20 @@ namespace ServiceGovernance.Registry.Tests
             {
                 var responseMessage = await _client.GetAsync("/v1/service/Api65");
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            }
+
+            [Test]
+            public async Task Returns_Endpoints_As_PublicUrls_When_No_PublicUrl_Was_Registered()
+            {
+                var responseMessage = await _client.GetAsync("/v1/service/Api2");
+                responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+
+                var content = await responseMessage.Content.ReadAsStringAsync();
+                content.Should().NotBeNullOrWhiteSpace();
+                var service = JsonConvert.DeserializeObject<Service>(content);
+                service.PublicUrls.Should().HaveCount(2);
+                service.PublicUrls[0].Should().Be(new Uri("http://api2-01.com"));
+                service.PublicUrls[1].Should().Be(new Uri("http://api2-02.com"));
             }
         }
     }

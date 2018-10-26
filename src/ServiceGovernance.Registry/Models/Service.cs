@@ -20,13 +20,18 @@ namespace ServiceGovernance.Registry.Models
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// Gets or sets the urls the service is available on
+        /// Gets or sets the urls the service is available on 
         /// </summary>
-        public Uri[] ServiceEndpoints { get; set; }
+        public Uri[] Endpoints { get; set; }
 
         /// <summary>
-        /// Gets or sets the ip addresses the service is runnin on
+        /// Gets or sets the ip addresses the service is running on
         /// </summary>
         public string[] IpAddresses { get; set; }
+
+        /// <summary>
+        /// Gets or sets the urls which should be used from service consumers (e.g. the public loadbalanced url)
+        /// </summary>
+        public Uri[] PublicUrls { get; set; }
     }
 }
