@@ -14,7 +14,7 @@ namespace ServiceGovernance.Registry.Endpoints
         /// <summary>
         /// Gets the url path this endpoint is listening on
         /// </summary>
-        public static PathString Path { get; } = new PathString("/service");
+        public static PathString Path { get; } = new PathString("/v1/service");
 
         public ServiceEndpoint(RequestDelegate next)
         {

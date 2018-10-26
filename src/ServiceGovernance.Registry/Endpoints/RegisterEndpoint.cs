@@ -20,7 +20,7 @@ namespace ServiceGovernance.Registry.Endpoints
         /// <summary>
         /// Gets the url path this endpoint is listening on
         /// </summary>
-        public static PathString Path { get; } = new PathString("/register");
+        public static PathString Path { get; } = new PathString("/v1/register");
 
         public RegisterEndpoint(RequestDelegate next)
         {
@@ -40,32 +40,33 @@ namespace ServiceGovernance.Registry.Endpoints
 
         private async Task UnregisterServiceAsync(HttpContext context, IServiceStore store, IRegistrationTokenProvider tokenProvider)
         {
-            var registerToken = context.Request.Path.Value;
-
-            var service = await tokenProvider.ValidateAsync(registerToken);
-
-            if (service != null)
+            if (context.Request.Path.HasValue)
             {
-                var item = await store.FindByServiceIdAsync(service.ServiceId);
+                var registerToken = context.Request.Path.Value.Substring(1);
 
-                if (item != null)
+                var service = await tokenProvider.ValidateAsync(registerToken);
+
+                if (service != null)
                 {
-                    // remove endpoints from service
-                    item.ServiceEndpoints = item.ServiceEndpoints.Except(service.ServiceEndpoints).ToArray();
+                    var item = await store.FindByServiceIdAsync(service.ServiceId);
 
-                    // remove service when no endpoints registered anymore
-                    if (item.ServiceEndpoints.Length > 0)
-                        await store.StoreAsync(item);
-                    else
-                        await store.RemoveAsync(service.ServiceId);
+                    if (item != null)
+                    {
+                        // remove endpoints from service
+                        item.ServiceEndpoints = item.ServiceEndpoints.Except(service.ServiceEndpoints).ToArray();
+
+                        // remove service when no endpoints registered anymore
+                        if (item.ServiceEndpoints.Length > 0)
+                            await store.StoreAsync(item);
+                        else
+                            await store.RemoveAsync(service.ServiceId);
+                    }
                 }
             }
         }
 
         private async Task RegisterServiceAsync(HttpContext context, IServiceStore store, IRegistrationTokenProvider tokenProvider)
         {
-            Service service = null;
-
             using (StreamReader sr = new StreamReader(context.Request.Body))
             {
                 using (JsonReader reader = new JsonTextReader(sr))
@@ -76,12 +77,21 @@ namespace ServiceGovernance.Registry.Endpoints
 
                     if (ValidateModel(model))
                     {
-                        service = new Service()
+                        var service = await store.FindByServiceIdAsync(model.ServiceIdentifier);
+
+                        if (service == null)
                         {
-                            DisplayName = model.ServiceDisplayName,
-                            ServiceId = model.ServiceIdentifier,
-                            ServiceEndpoints = model.Endpoints,
-                        };
+                            service = new Service()
+                            {
+                                DisplayName = model.ServiceDisplayName,
+                                ServiceId = model.ServiceIdentifier,
+                                ServiceEndpoints = model.Endpoints,
+                            };
+                        }
+                        else
+                        {
+                            service.ServiceEndpoints = service.ServiceEndpoints.Concat(model.Endpoints).ToArray();
+                        }
 
                         await store.StoreAsync(service);
 
@@ -90,7 +100,7 @@ namespace ServiceGovernance.Registry.Endpoints
                     }
                     else
                     {
-                        context.Response.StatusCode = (int)HttpStatusCode.BadRequest;                        
+                        context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                         context.Response.ContentType = "text/plain";
                         await context.Response.WriteAsync("Invalid registration model");
                     }

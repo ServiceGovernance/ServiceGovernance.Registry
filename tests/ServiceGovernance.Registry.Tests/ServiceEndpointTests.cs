@@ -52,7 +52,7 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Returns_All_Registered_Services()
             {                
-                var responseMessage = await _client.GetAsync("/service");
+                var responseMessage = await _client.GetAsync("/v1/service");
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 var content = await responseMessage.Content.ReadAsStringAsync();
@@ -72,7 +72,7 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Returns_Registered_Service_By_Id()
             {
-                var responseMessage = await _client.GetAsync("/service/Api2");
+                var responseMessage = await _client.GetAsync("/v1/service/Api2");
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 var content = await responseMessage.Content.ReadAsStringAsync();
@@ -88,7 +88,7 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Returns_Not_Found_By_Unknown_Id()
             {
-                var responseMessage = await _client.GetAsync("/service/Api65");
+                var responseMessage = await _client.GetAsync("/v1/service/Api65");
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
             }
         }
