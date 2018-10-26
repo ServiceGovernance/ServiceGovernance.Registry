@@ -17,7 +17,7 @@ namespace ServiceGovernance.Registry.Stores.InMemory
         /// Initializes a new instance of the <see cref="InMemoryClientStore"/> class.
         /// </summary>
         /// <param name="services">The services.</param>
-        public InMemoryServiceStore(IEnumerable<Service> services)
+        public InMemoryServiceStore(Service[] services)
         {
             if (services.HasDuplicates(m => m.ServiceId))
             {
@@ -67,10 +67,16 @@ namespace ServiceGovernance.Registry.Stores.InMemory
         /// <returns></returns>
         public Task StoreAsync(Service service)
         {
-            if (_services.Exists(s => s.ServiceId == service.ServiceId))
-                throw new ArgumentException($"Service with id {service.ServiceId} already exists!");
-
-            _services.Add(service);
+            var existing = _services.Find(s => s.ServiceId == service.ServiceId);
+            if (existing == null)
+            {
+                _services.Add(service);
+            }
+            else
+            {
+                existing.DisplayName = service.DisplayName;
+                existing.ServiceEndpoints = service.ServiceEndpoints;
+            }
 
             return Task.CompletedTask;
         }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ServiceGovernance.Registry.Endpoints;
 using ServiceGovernance.Registry.Stores;
 using System;
 
@@ -22,7 +23,8 @@ namespace Microsoft.AspNetCore.Builder
 
             app.Validate();
 
-            //app.UseMiddleware<ServiceRegistryMiddleware>();
+            app.Map(RegisterEndpoint.Path, b => b.UseMiddleware<RegisterEndpoint>());
+            app.Map(ServiceEndpoint.Path, b => b.UseMiddleware<ServiceEndpoint>());
 
             return app;
         }
@@ -30,7 +32,7 @@ namespace Microsoft.AspNetCore.Builder
         internal static void Validate(this IApplicationBuilder app)
         {
             if (!(app.ApplicationServices.GetService(typeof(ILoggerFactory)) is ILoggerFactory loggerFactory))
-                throw new ArgumentNullException(nameof(loggerFactory));
+                throw new InvalidOperationException(nameof(loggerFactory));
 
             var logger = loggerFactory.CreateLogger("ServiceRegistry.Startup");
 

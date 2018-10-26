@@ -29,8 +29,7 @@ namespace Registry
             });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-
-            var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
+            services.AddDataProtection();
 
             services.AddServiceRegistry()
                 .AddInMemoryStore();

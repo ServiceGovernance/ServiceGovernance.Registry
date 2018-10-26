@@ -1,32 +1,27 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace ServiceGovernance.Registry.Models
 {
-    /// <summary>
-    /// Models a service
-    /// </summary>
-    [DebuggerDisplay("{ServiceId}")]
-    public class Service
+    public class ServiceRegistrationInputModel
     {
         /// <summary>
         /// Gets or sets a unique service identifier
         /// </summary>
-        public string ServiceId { get; set; }
+        public string ServiceIdentifier { get; set; }
 
         /// <summary>
         /// Gets or sets a display name of the service
         /// </summary>
-        public string DisplayName { get; set; }
+        public string ServiceDisplayName { get; set; }
 
         /// <summary>
         /// Gets or sets the urls the service is available on
         /// </summary>
-        public Uri[] ServiceEndpoints { get; set; }
+        public Uri[] Endpoints { get; set; }
 
         /// <summary>
-        /// Gets or sets the ip addresses the service is runnin on
+        /// Get or sets the Ip address of the machine the service is running on
         /// </summary>
-        public string[] IpAddresses { get; set; }
+        public string MachineIpAddress { get; set; }
     }
 }

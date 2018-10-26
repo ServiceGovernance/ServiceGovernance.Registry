@@ -5,6 +5,7 @@ using ServiceGovernance.Registry.Models;
 using ServiceGovernance.Registry.Services;
 using ServiceGovernance.Registry.Stores.InMemory;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -22,7 +23,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceRegistryBuilder AddInMemoryStore(this IServiceRegistryBuilder builder, params Service[] services)
         {
             builder.Services.AddSingleton(services);
-            builder.AddServiceStore<InMemoryServiceStore>();
+            builder.AddServiceStoreAsSingleton<InMemoryServiceStore>();
 
             return builder;
         }

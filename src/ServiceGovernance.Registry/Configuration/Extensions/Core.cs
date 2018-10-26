@@ -19,8 +19,23 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceRegistryBuilder AddServiceStore<T>(this IServiceRegistryBuilder builder)
             where T : class, IServiceStore
         {
-            builder.Services.TryAddTransient(typeof(T));
-            builder.Services.AddTransient<IServiceStore, T>();
+            builder.Services.TryAddScoped(typeof(T));
+            builder.Services.AddScoped<IServiceStore, T>();
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds a service store as singleton.
+        /// </summary>
+        /// <typeparam name="T">Type of the service store</typeparam>
+        /// <param name="builder">The builder.</param>
+        /// <returns></returns>
+        public static IServiceRegistryBuilder AddServiceStoreAsSingleton<T>(this IServiceRegistryBuilder builder)
+            where T : class, IServiceStore
+        {
+            builder.Services.TryAddSingleton(typeof(T));
+            builder.Services.AddSingleton<IServiceStore, T>();
 
             return builder;
         }
