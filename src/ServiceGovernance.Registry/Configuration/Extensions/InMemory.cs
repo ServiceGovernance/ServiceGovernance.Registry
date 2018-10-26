@@ -23,7 +23,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceRegistryBuilder AddInMemoryStore(this IServiceRegistryBuilder builder, params Service[] services)
         {
             builder.Services.AddSingleton(services);
-            builder.AddServiceStore<InMemoryServiceStore>();
+            builder.AddServiceStoreAsSingleton<InMemoryServiceStore>();
 
             return builder;
         }
