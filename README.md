@@ -30,7 +30,7 @@ Optionally you can pass in options into this call.
 
 This will return you a builder object that in turn has a number of convenience methods to wire up additional services.
 
-## In-Memory configuration stores
+## In-Memory stores
 
 The "in-memory" configuration APIs allow for configuring ServiceRegistry from an in-memory list of configuration objects.
 These "in-memory" collections can be hard-coded in the hosting application, or could be loaded dynamically from a configuration file or a database.
@@ -40,6 +40,21 @@ Use of these configuration APIs are designed for use when prototyping, developin
 
 * `AddInMemoryStore`
     Registers `IServiceStore` implementation storing services as in-memory list. Optional arguments are services which will be added to the store.
+
+```CSharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddServiceRegistry()
+        .AddInMemoryStore();
+}
+```
+
+## Other stores
+
+Available persistence libraries are:
+
+* [Entity Framework](https://github.com/ServiceGovernance/ServiceGovernance.Registry.EntityFramework)
+* [Redis](https://github.com/ServiceGovernance/ServiceGovernance.Registry.Redis)
 
 ## Additional services
 
@@ -66,3 +81,7 @@ If you wish to customize the caching behavior for the specific configuration obj
 
 The default implementation of the `ICache<T>` itself relies upon the `IMemoryCache` interface (and `MemoryCache` implementation) provided by .NET.
 If you wish to customize the in-memory caching behavior, you can replace the `IMemoryCache` implementation in the dependency injection system.
+
+## UI
+
+There's no built-in UI to show the registered services. It's fairly easy to build one by yourself using the `IServiceStore`. Please have a look at the [sample](https://github.com/ServiceGovernance/ServiceGovernance.Registry/blob/master/samples/Registry/Controllers/HomeController.cs).
