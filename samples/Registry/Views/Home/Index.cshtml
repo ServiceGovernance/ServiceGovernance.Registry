@@ -10,10 +10,12 @@
 {
 
     <h4>@service.DisplayName (@service.ServiceId)</h4>
+    @Html.Raw(string.Join(", ", service.PublicUrls.Select(url => url.ToString())))
 
+    <br />
     <b>Endpoints:</b>
     <ul>
-        @foreach (var endpoint in service.ServiceEndpoints)
+        @foreach (var endpoint in service.Endpoints)
         {
             <li>@endpoint</li>
         }
@@ -21,10 +23,10 @@
 
     <b>Ip addresses:</b>
     <ul>
-      @foreach(var address in service.IpAddresses)
-      {
-          <li>@address</li>
-      }
+        @foreach (var address in service.IpAddresses)
+        {
+            <li>@address</li>
+        }
 
     </ul>
 }

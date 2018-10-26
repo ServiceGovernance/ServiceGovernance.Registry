@@ -54,20 +54,20 @@ namespace ServiceGovernance.Registry.Endpoints
 
                 if (serviceRegistration != null)
                 {
-                    var item = await store.FindByServiceIdAsync(serviceRegistration.ServiceIdentifier);
+                    var item = await store.FindByServiceIdAsync(serviceRegistration.ServiceId);
 
                     if (item != null)
                     {
                         // remove endpoints from service
-                        item.ServiceEndpoints = item.ServiceEndpoints.Except(serviceRegistration.Endpoints).ToArray();
+                        item.Endpoints = item.Endpoints.Except(serviceRegistration.Endpoints).ToArray();
                         // remove ipaddress from service
-                        item.IpAddresses = item.IpAddresses.Except(new[] { serviceRegistration.MachineIpAddress }).ToArray();
+                        item.IpAddresses = item.IpAddresses.Except(new[] { serviceRegistration.IpAddress }).ToArray();
 
                         // remove service when no endpoints registered anymore
-                        if (item.ServiceEndpoints.Length > 0)
+                        if (item.Endpoints.Length > 0)
                             await store.StoreAsync(item);
                         else
-                            await store.RemoveAsync(serviceRegistration.ServiceIdentifier);
+                            await store.RemoveAsync(serviceRegistration.ServiceId);
                     }
                 }
             }
@@ -85,22 +85,28 @@ namespace ServiceGovernance.Registry.Endpoints
 
                     if (ValidateModel(model))
                     {
-                        var service = await store.FindByServiceIdAsync(model.ServiceIdentifier);
+                        var service = await store.FindByServiceIdAsync(model.ServiceId);
 
                         if (service == null)
                         {
                             service = new Service()
                             {
-                                DisplayName = model.ServiceDisplayName,
-                                ServiceId = model.ServiceIdentifier,
-                                ServiceEndpoints = model.Endpoints,
-                                IpAddresses = new[] { model.MachineIpAddress }
+                                DisplayName = model.DisplayName,
+                                ServiceId = model.ServiceId,
+                                Endpoints = model.Endpoints,
+                                IpAddresses = new[] { model.IpAddress },
+                                PublicUrls = model.PublicUrls
                             };
                         }
                         else
                         {
-                            service.ServiceEndpoints = service.ServiceEndpoints.Concat(model.Endpoints).ToArray();
-                            service.IpAddresses = service.IpAddresses.Concat(new[] { model.MachineIpAddress }).ToArray();
+                            service.Endpoints = service.Endpoints.Concat(model.Endpoints).ToArray();
+
+                            if (!string.IsNullOrWhiteSpace(model.IpAddress))
+                                service.IpAddresses = service.IpAddresses.Concat(new[] { model.IpAddress }).ToArray();
+
+                            if (model.PublicUrls?.Length > 0)                            
+                                service.PublicUrls = service.PublicUrls.Concat(model.PublicUrls).Distinct().ToArray();                            
                         }
 
                         await store.StoreAsync(service);
@@ -120,7 +126,7 @@ namespace ServiceGovernance.Registry.Endpoints
 
         private bool ValidateModel(ServiceRegistrationInputModel model)
         {
-            if (string.IsNullOrWhiteSpace(model.ServiceIdentifier))
+            if (string.IsNullOrWhiteSpace(model.ServiceId))
                 return false;
 
             if (model.Endpoints == null || model.Endpoints.Length == 0)

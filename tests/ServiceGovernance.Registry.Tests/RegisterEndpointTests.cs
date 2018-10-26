@@ -41,10 +41,11 @@ namespace ServiceGovernance.Registry.Tests
             {
                 var registration = new ServiceRegistration()
                 {
-                    ServiceIdentifier = "RegisterTest",
-                    ServiceDisplayName = "Test service",
-                    Endpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") },
-                    MachineIpAddress = "10.10.0.1"
+                    ServiceId = "RegisterTest",
+                    DisplayName = "Test service",
+                    Endpoints = new Uri[] { new Uri("http://myservice01-qa.com"), new Uri("https://myservice01-qa:5000") },
+                    IpAddress = "10.10.0.1",
+                    PublicUrls = new Uri[] {new Uri("http://myservice-qa.com")}
                 };
 
                 var requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
@@ -58,18 +59,20 @@ namespace ServiceGovernance.Registry.Tests
                 content.Should().NotBeNullOrWhiteSpace();
 
                 // check weather service was registred and is now listed
-                responseMessage = await _client.GetAsync("/v1/service/" + registration.ServiceIdentifier);
+                responseMessage = await _client.GetAsync("/v1/service/" + registration.ServiceId);
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 content = await responseMessage.Content.ReadAsStringAsync();
                 content.Should().NotBeNullOrWhiteSpace();
                 var service = JsonConvert.DeserializeObject<Service>(content);
-                service.ServiceId.Should().Be(registration.ServiceIdentifier);
-                service.DisplayName.Should().Be(registration.ServiceDisplayName);
-                service.ServiceEndpoints.Should().HaveCount(registration.Endpoints.Length);
-                service.ServiceEndpoints.Should().Contain(registration.Endpoints);
+                service.ServiceId.Should().Be(registration.ServiceId);
+                service.DisplayName.Should().Be(registration.DisplayName);
+                service.Endpoints.Should().HaveCount(registration.Endpoints.Length);
+                service.Endpoints.Should().Contain(registration.Endpoints);
                 service.IpAddresses.Should().HaveCount(1);
-                service.IpAddresses.Should().Contain(registration.MachineIpAddress);
+                service.IpAddresses.Should().Contain(registration.IpAddress);
+                service.PublicUrls.Should().HaveCount(registration.PublicUrls.Length);
+                service.PublicUrls.Should().Contain(registration.PublicUrls);
             }
 
             [Test]
@@ -77,10 +80,10 @@ namespace ServiceGovernance.Registry.Tests
             {
                 var registration = new ServiceRegistration()
                 {
-                    ServiceIdentifier = "",
-                    ServiceDisplayName = "Test service",
-                    Endpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") },
-                    MachineIpAddress = "10.10.0.1"
+                    ServiceId = "",
+                    DisplayName = "Test service",
+                    Endpoints = new Uri[] { new Uri("http://myservice01-qa.com"), new Uri("https://myservice01-qa:5000") },
+                    IpAddress = "10.10.0.1"
                 };
 
                 var requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
@@ -95,8 +98,8 @@ namespace ServiceGovernance.Registry.Tests
             {
                 var registration = new ServiceRegistration()
                 {
-                    ServiceIdentifier = "ServiceIdNoEndpoints",
-                    ServiceDisplayName = "Test service"
+                    ServiceId = "ServiceIdNoEndpoints",
+                    DisplayName = "Test service"
                 };
 
                 var requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
@@ -111,10 +114,10 @@ namespace ServiceGovernance.Registry.Tests
             {
                 var registration = new ServiceRegistration()
                 {
-                    ServiceIdentifier = "ServiceIdNoIpAddress",
-                    ServiceDisplayName = "Test service",
-                    Endpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") },
-                    MachineIpAddress = ""
+                    ServiceId = "ServiceIdNoIpAddress",
+                    DisplayName = "Test service",
+                    Endpoints = new Uri[] { new Uri("http://myservice01-qa.com"), new Uri("https://myservice01-qa:5000") },
+                    IpAddress = ""
                 };
 
                 var requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
@@ -122,6 +125,52 @@ namespace ServiceGovernance.Registry.Tests
                 var responseMessage = await _client.SendAsync(requestMessage);
 
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+            }
+
+            [Test]
+            public async Task PublicUrl_Is_Not_Registered_Twice_For_Same_Service()
+            {
+                // register endpoints 1
+                var registration = new ServiceRegistration()
+                {
+                    ServiceId = "PublicUrlSameServiceTest",
+                    DisplayName = "Test service",
+                    Endpoints = new Uri[] { new Uri("http://myservice01-qa.com"), new Uri("https://myservice01-qa:5000") },
+                    PublicUrls = new Uri[] { new Uri("http://myservice-qa.com")}
+                };
+
+                var requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(registration));
+                var responseMessage = await _client.SendAsync(requestMessage);
+                responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+                var tokenRegistration1 = await responseMessage.Content.ReadAsStringAsync();
+
+                // register endpoints 2
+                var registration2 = new ServiceRegistration()
+                {
+                    ServiceId = registration.ServiceId,
+                    DisplayName = registration.DisplayName,
+                    Endpoints = new Uri[] { new Uri("http://myservice02-qa.com") },
+                    IpAddress = "10.10.0.2",
+                    PublicUrls = registration.PublicUrls
+                };
+
+                requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(registration2));
+                responseMessage = await _client.SendAsync(requestMessage);
+                responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+
+                var tokenRegistration2 = await responseMessage.Content.ReadAsStringAsync();
+
+                // check weather service was registred and is now listed
+                responseMessage = await _client.GetAsync("/v1/service/" + registration.ServiceId);
+                responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+
+                var service = JsonConvert.DeserializeObject<Service>(await responseMessage.Content.ReadAsStringAsync());
+                service.ServiceId.Should().Be(registration.ServiceId);
+                service.DisplayName.Should().Be(registration.DisplayName);
+                service.PublicUrls.Should().HaveCount(1);
+                service.PublicUrls.Should().Contain(registration.PublicUrls);          
             }
         }
 
@@ -146,10 +195,10 @@ namespace ServiceGovernance.Registry.Tests
                 // register endpoints 1
                 var registration = new ServiceRegistration()
                 {
-                    ServiceIdentifier = "DeleteEndpointTest",
-                    ServiceDisplayName = "Test service",
+                    ServiceId = "DeleteEndpointTest",
+                    DisplayName = "Test service",
                     Endpoints = new Uri[] { new Uri("http://test01.com"), new Uri("https://otherurl01.com:5000") },
-                    MachineIpAddress = "10.10.0.1"
+                    IpAddress = "10.10.0.1"
                 };
 
                 var requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
@@ -161,10 +210,10 @@ namespace ServiceGovernance.Registry.Tests
                 // register endpoints 2
                 var registration2 = new ServiceRegistration()
                 {
-                    ServiceIdentifier = registration.ServiceIdentifier,
-                    ServiceDisplayName = registration.ServiceDisplayName,
+                    ServiceId = registration.ServiceId,
+                    DisplayName = registration.DisplayName,
                     Endpoints = new Uri[] { new Uri("http://test02.com"), new Uri("https://otherurl02.com:5000") },
-                    MachineIpAddress = "10.10.0.2"
+                    IpAddress = "10.10.0.2"
                 };
 
                 requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
@@ -175,18 +224,18 @@ namespace ServiceGovernance.Registry.Tests
                 var tokenRegistration2 = await responseMessage.Content.ReadAsStringAsync();
 
                 // check weather service was registred and is now listed
-                responseMessage = await _client.GetAsync("/v1/service/" + registration.ServiceIdentifier);
+                responseMessage = await _client.GetAsync("/v1/service/" + registration.ServiceId);
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 var service = JsonConvert.DeserializeObject<Service>(await responseMessage.Content.ReadAsStringAsync());
-                service.ServiceId.Should().Be(registration.ServiceIdentifier);
-                service.DisplayName.Should().Be(registration.ServiceDisplayName);
-                service.ServiceEndpoints.Should().HaveCount(4);
-                service.ServiceEndpoints.Should().Contain(registration.Endpoints);
-                service.ServiceEndpoints.Should().Contain(registration2.Endpoints);                
+                service.ServiceId.Should().Be(registration.ServiceId);
+                service.DisplayName.Should().Be(registration.DisplayName);
+                service.Endpoints.Should().HaveCount(4);
+                service.Endpoints.Should().Contain(registration.Endpoints);
+                service.Endpoints.Should().Contain(registration2.Endpoints);                
                 service.IpAddresses.Should().HaveCount(2);
-                service.IpAddresses.Should().Contain(registration.MachineIpAddress);
-                service.IpAddresses.Should().Contain(registration2.MachineIpAddress);
+                service.IpAddresses.Should().Contain(registration.IpAddress);
+                service.IpAddresses.Should().Contain(registration2.IpAddress);
 
                 // remove endpoints from registration 1
                 requestMessage = new HttpRequestMessage(new HttpMethod("DELETE"), "/v1/register/" + tokenRegistration1);
@@ -194,18 +243,18 @@ namespace ServiceGovernance.Registry.Tests
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 // check weather service was registred and is now listed without endpoints from registration 1
-                responseMessage = await _client.GetAsync("/v1/service/" + registration.ServiceIdentifier);
+                responseMessage = await _client.GetAsync("/v1/service/" + registration.ServiceId);
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 service = JsonConvert.DeserializeObject<Service>(await responseMessage.Content.ReadAsStringAsync());
-                service.ServiceId.Should().Be(registration.ServiceIdentifier);
-                service.DisplayName.Should().Be(registration.ServiceDisplayName);
-                service.ServiceEndpoints.Should().HaveCount(2);
-                service.ServiceEndpoints.Should().NotContain(registration.Endpoints);
-                service.ServiceEndpoints.Should().Contain(registration2.Endpoints);
+                service.ServiceId.Should().Be(registration.ServiceId);
+                service.DisplayName.Should().Be(registration.DisplayName);
+                service.Endpoints.Should().HaveCount(2);
+                service.Endpoints.Should().NotContain(registration.Endpoints);
+                service.Endpoints.Should().Contain(registration2.Endpoints);
                 service.IpAddresses.Should().HaveCount(1);
-                service.IpAddresses.Should().NotContain(registration.MachineIpAddress);
-                service.IpAddresses.Should().Contain(registration2.MachineIpAddress);
+                service.IpAddresses.Should().NotContain(registration.IpAddress);
+                service.IpAddresses.Should().Contain(registration2.IpAddress);
             }
 
             [Test]
@@ -214,10 +263,10 @@ namespace ServiceGovernance.Registry.Tests
                 // register endpoints 
                 var registration = new ServiceRegistration()
                 {
-                    ServiceIdentifier = "DeleteServiceTest",
-                    ServiceDisplayName = "Test service",
+                    ServiceId = "DeleteServiceTest",
+                    DisplayName = "Test service",
                     Endpoints = new Uri[] { new Uri("http://test01.com"), new Uri("https://otherurl01.com:5000") },
-                    MachineIpAddress = "10.10.0.1"
+                    IpAddress = "10.10.0.1"
                 };
 
                 var requestMessage = new HttpRequestMessage(new HttpMethod("POST"), "/v1/register");
@@ -227,16 +276,16 @@ namespace ServiceGovernance.Registry.Tests
                 var tokenRegistration1 = await responseMessage.Content.ReadAsStringAsync();
 
                 // check weather service was registred and is now listed
-                responseMessage = await _client.GetAsync("/v1/service/" + registration.ServiceIdentifier);
+                responseMessage = await _client.GetAsync("/v1/service/" + registration.ServiceId);
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 var service = JsonConvert.DeserializeObject<Service>(await responseMessage.Content.ReadAsStringAsync());
-                service.ServiceId.Should().Be(registration.ServiceIdentifier);
-                service.DisplayName.Should().Be(registration.ServiceDisplayName);
-                service.ServiceEndpoints.Should().HaveCount(2);
-                service.ServiceEndpoints.Should().Contain(registration.Endpoints);
+                service.ServiceId.Should().Be(registration.ServiceId);
+                service.DisplayName.Should().Be(registration.DisplayName);
+                service.Endpoints.Should().HaveCount(2);
+                service.Endpoints.Should().Contain(registration.Endpoints);
                 service.IpAddresses.Should().HaveCount(1);
-                service.IpAddresses.Should().Contain(registration.MachineIpAddress);
+                service.IpAddresses.Should().Contain(registration.IpAddress);
 
                 // remove endpoints from registration 
                 requestMessage = new HttpRequestMessage(new HttpMethod("DELETE"), "/v1/register/" + tokenRegistration1);
@@ -244,7 +293,7 @@ namespace ServiceGovernance.Registry.Tests
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 // check weather service was unregistered
-                responseMessage = await _client.GetAsync("/v1/service/" + registration.ServiceIdentifier);
+                responseMessage = await _client.GetAsync("/v1/service/" + registration.ServiceId);
                 responseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
             }
         }

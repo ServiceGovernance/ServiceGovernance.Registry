@@ -75,7 +75,9 @@ namespace ServiceGovernance.Registry.Stores.InMemory
             else
             {
                 existing.DisplayName = service.DisplayName;
-                existing.ServiceEndpoints = service.ServiceEndpoints;
+                existing.Endpoints = service.Endpoints;
+                existing.IpAddresses = service.IpAddresses;
+                existing.PublicUrls = service.PublicUrls;
             }
 
             return Task.CompletedTask;

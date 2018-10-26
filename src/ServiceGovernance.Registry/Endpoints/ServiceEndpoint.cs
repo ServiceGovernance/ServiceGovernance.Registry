@@ -41,9 +41,19 @@ namespace ServiceGovernance.Registry.Endpoints
             var service = await store.FindByServiceIdAsync(serviceId);
 
             if (service != null)
+            {
+                // publish endpoints as public urls if nothing is registered
+                if (service.PublicUrls == null || service.PublicUrls.Length == 0)
+                {
+                    service.PublicUrls = service.Endpoints;
+                }
+
                 await context.WriteModelAsync(service);
+            }
             else
+            {
                 context.Response.StatusCode = 404;
+            }
         }
 
         private async Task GetAllServicesAsync(HttpContext context, IServiceStore store)

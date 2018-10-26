@@ -162,7 +162,7 @@ namespace ServiceGovernance.Registry.Tests
             }
 
             [Test]
-            public async Task Updates_Existing_Item()
+            public async Task Updates_Endpoints_On_Existing_Item()
             {
                 var services = new[] {
                     new Service() { ServiceId = "Test1" },
@@ -171,12 +171,48 @@ namespace ServiceGovernance.Registry.Tests
                 };
                 var store = new InMemoryServiceStore(services);
 
-                await store.StoreAsync(new Service() { ServiceId = "Test2", ServiceEndpoints = new Uri[] { new Uri("Http://test.com")} });
+                await store.StoreAsync(new Service() { ServiceId = "Test2", Endpoints = new [] { new Uri("Http://test.com")} });
 
                 var service = await store.FindByServiceIdAsync("Test2");
                 service.Should().NotBeNull();
-                service.ServiceEndpoints.Should().HaveCount(1);
-                service.ServiceEndpoints[0].Should().Be(new Uri("http://test.com"));
+                service.Endpoints.Should().HaveCount(1);
+                service.Endpoints[0].Should().Be(new Uri("http://test.com"));
+            }
+
+            [Test]
+            public async Task Updates_IpAddresses_On_Existing_Item()
+            {
+                var services = new[] {
+                    new Service() { ServiceId = "Test1" },
+                    new Service() { ServiceId = "Test2" },
+                    new Service() { ServiceId = "Test3" },
+                };
+                var store = new InMemoryServiceStore(services);
+
+                await store.StoreAsync(new Service() { ServiceId = "Test2", IpAddresses = new [] { "10.10.0.2" } });
+
+                var service = await store.FindByServiceIdAsync("Test2");
+                service.Should().NotBeNull();
+                service.IpAddresses.Should().HaveCount(1);
+                service.IpAddresses[0].Should().Be("10.10.0.2");
+            }
+
+            [Test]
+            public async Task Updates_PublicUrls_On_Existing_Item()
+            {
+                var services = new[] {
+                    new Service() { ServiceId = "Test1" },
+                    new Service() { ServiceId = "Test2" },
+                    new Service() { ServiceId = "Test3" },
+                };
+                var store = new InMemoryServiceStore(services);
+
+                await store.StoreAsync(new Service() { ServiceId = "Test2", PublicUrls = new [] { new Uri("Http://test.com") } });
+
+                var service = await store.FindByServiceIdAsync("Test2");
+                service.Should().NotBeNull();
+                service.PublicUrls.Should().HaveCount(1);
+                service.PublicUrls[0].Should().Be(new Uri("http://test.com"));
             }
         }
     }

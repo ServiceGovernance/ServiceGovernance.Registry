@@ -30,6 +30,7 @@ namespace Api1
                 options.Registry = new Uri("http://localhost:5005");
                 options.ServiceIdentifier = "Api1";
                 options.ServiceDisplayName = "My Api";
+                options.PublicUrls = new[] { new Uri("http://api1.mycompany.com") };
                 });
         }
 

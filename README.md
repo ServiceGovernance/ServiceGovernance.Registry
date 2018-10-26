@@ -85,3 +85,112 @@ If you wish to customize the in-memory caching behavior, you can replace the `IM
 ## UI
 
 There's no built-in UI to show the registered services. It's fairly easy to build one by yourself using the `IServiceStore`. Please have a look at the [sample](https://github.com/ServiceGovernance/ServiceGovernance.Registry/blob/master/samples/Registry/Controllers/HomeController.cs).
+
+## APIs
+
+Following APIs are provided by this library:
+
+### Register service
+
+This endpoint registers a service in the registry.
+
+|Url|Method|Type
+|-|-|-|
+|/v1/register|POST|application/json
+
+### Parameter
+
+```json
+{
+    "serviceId": "UniqueServiceId", //required
+    "displayName": "A human friendly display name",
+    "endpoints": ["https://myservice01-qa.com"], //required
+    "ipAddress": "10.10.0.1",
+    "publicUrls": ["https://myserviceurl-qa.com"]
+}
+```
+
+### Response
+
+`text/plain` HTTP 200
+
+The endpoint returns a token which should be used to unregister the service.
+
+### Unregister service
+
+This endpoint removes a service registration.
+
+|Url|Method|Type
+|-|-|-|
+|/v1/register|DELETE|text/plain
+
+### Parameter
+
+The token returned from the service registration call.
+
+```plain
+dfg54dfg54df3g21df53g4df3g54
+```
+
+### Response
+
+`text/plain` HTTP 200
+
+### Get service
+
+This endpoint returns the registered service.
+
+|Url|Method|Type
+|-|-|-|
+|/v1/service/{serviceId}|Get|
+
+### Parameter
+`serviceid` The service you want to retrieve
+
+### Response
+
+`application/json` HTTP 200
+
+The endpoint returns the registered service.
+> If no public url was registered, the endpoints will be published as public urls.
+
+```json
+{
+    "serviceId": "UniqueServiceId",
+    "displayName": "A human friendly display name",
+    "endpoints": ["http://myserviceurl01.com", "http://myserviceurl02.com"],
+    "ipAddresses": ["10.10.0.1", "10.10.0.2"],
+    "publicUrls": ["https://myserviceurl.com"]
+}
+```
+
+### Get all services
+
+This endpoint returns all registered services.
+
+|Url|Method|Type
+|-|-|-|
+|/v1/service/Get|
+
+### Parameter
+
+### Response
+
+`application/json` HTTP 200
+
+The endpoint returns all registered services.
+
+```json
+[
+    {
+        "serviceId": "UniqueServiceId",
+        "displayName": "A human friendly display name",
+        "serviceEndpoints": ["http://myserviceurl01.com", "http://myserviceurl02.com"],
+        "ipAddresses": ["10.10.0.1", "10.10.0.2"],
+        "publicUrls": ["https://myserviceurl.com"]
+    },
+    {
+        ...
+    }
+]
+```
