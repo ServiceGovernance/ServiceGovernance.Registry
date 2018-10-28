@@ -2,9 +2,7 @@
 using Newtonsoft.Json;
 using ServiceGovernance.Registry.Models;
 using ServiceGovernance.Registry.Services;
-using ServiceGovernance.Registry.Stores;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -13,67 +11,48 @@ namespace ServiceGovernance.Registry.Endpoints
     /// <summary>
     /// Middleware providing the "register" API endpoint
     /// </summary>
-    public class RegisterEndpoint
+    public class RegisterEndpoint : IMiddleware
     {
-        private readonly RequestDelegate _next;
+        private readonly IServiceRegistry _serviceRegistry;
 
         /// <summary>
         /// Gets the url path this endpoint is listening on
         /// </summary>
         public static PathString Path { get; } = new PathString("/v1/register");
 
-        public RegisterEndpoint(RequestDelegate next)
+        public RegisterEndpoint(IServiceRegistry serviceRegistry)
         {
-            _next = next;
+            _serviceRegistry = serviceRegistry ?? throw new System.ArgumentNullException(nameof(serviceRegistry));
         }
 
-        public async Task InvokeAsync(HttpContext context, IServiceStore store, IRegistrationTokenProvider tokenProvider)
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             if (HttpMethods.IsPost(context.Request.Method))
             {
-                await RegisterServiceAsync(context, store, tokenProvider);
+                await RegisterServiceAsync(context);
             }
             else if (HttpMethods.IsDelete(context.Request.Method))
             {
-                await UnregisterServiceAsync(context, store, tokenProvider);
+                await UnregisterServiceAsync(context);
             }
             else
             {
                 // Call the next delegate/middleware in the pipeline
-                await _next(context);
+                await next(context);
             }
         }
 
-        private async Task UnregisterServiceAsync(HttpContext context, IServiceStore store, IRegistrationTokenProvider tokenProvider)
+        private async Task UnregisterServiceAsync(HttpContext context)
         {
             if (context.Request.Path.HasValue)
             {
                 var registerToken = context.Request.Path.Value.Substring(1);
 
-                var serviceRegistration = await tokenProvider.ValidateAsync(registerToken);
-
-                if (serviceRegistration != null)
-                {
-                    var item = await store.FindByServiceIdAsync(serviceRegistration.ServiceId);
-
-                    if (item != null)
-                    {
-                        // remove endpoints from service
-                        item.Endpoints = item.Endpoints.Except(serviceRegistration.Endpoints).ToArray();
-                        // remove ipaddress from service
-                        item.IpAddresses = item.IpAddresses.Except(new[] { serviceRegistration.IpAddress }).ToArray();
-
-                        // remove service when no endpoints registered anymore
-                        if (item.Endpoints.Length > 0)
-                            await store.StoreAsync(item);
-                        else
-                            await store.RemoveAsync(serviceRegistration.ServiceId);
-                    }
-                }
+                await _serviceRegistry.Unregister(registerToken);
             }
         }
 
-        private async Task RegisterServiceAsync(HttpContext context, IServiceStore store, IRegistrationTokenProvider tokenProvider)
+        private async Task RegisterServiceAsync(HttpContext context)
         {
             using (StreamReader sr = new StreamReader(context.Request.Body))
             {
@@ -85,34 +64,8 @@ namespace ServiceGovernance.Registry.Endpoints
 
                     if (ValidateModel(model))
                     {
-                        var service = await store.FindByServiceIdAsync(model.ServiceId);
-
-                        if (service == null)
-                        {
-                            service = new Service()
-                            {
-                                DisplayName = model.DisplayName,
-                                ServiceId = model.ServiceId,
-                                Endpoints = model.Endpoints,
-                                IpAddresses = new[] { model.IpAddress },
-                                PublicUrls = model.PublicUrls
-                            };
-                        }
-                        else
-                        {
-                            service.Endpoints = service.Endpoints.Concat(model.Endpoints).ToArray();
-
-                            if (!string.IsNullOrWhiteSpace(model.IpAddress))
-                                service.IpAddresses = service.IpAddresses.Concat(new[] { model.IpAddress }).ToArray();
-
-                            if (model.PublicUrls?.Length > 0)                            
-                                service.PublicUrls = service.PublicUrls.Concat(model.PublicUrls).Distinct().ToArray();                            
-                        }
-
-                        await store.StoreAsync(service);
-
                         context.Response.ContentType = "text/plain";
-                        await context.Response.WriteAsync(await tokenProvider.GenerateAsync(model));
+                        await context.Response.WriteAsync(await _serviceRegistry.RegisterAsync(model));
                     }
                     else
                     {

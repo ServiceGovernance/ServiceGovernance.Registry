@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using ServiceGovernance.Registry.Configuration;
+using ServiceGovernance.Registry.Endpoints;
 using ServiceGovernance.Registry.Services;
 using System;
 
@@ -25,7 +26,9 @@ namespace Microsoft.Extensions.DependencyInjection
             setupAction?.Invoke(options);
 
             services.AddSingleton(options);
-            services.AddScoped<IRegistrationTokenProvider, RegistrationTokenProvider>();            
+            services.AddScoped<IRegistrationTokenProvider, RegistrationTokenProvider>();
+            services.AddScoped<IServiceRegistry, ServiceRegistry>();
+            services.AddTransient<RegisterEndpoint>();
 
             return new ServiceRegistryBuilder(services);
         }
