@@ -25,7 +25,7 @@ namespace ServiceGovernance.Registry.Tests
             var builder = new WebHostBuilder()
               .ConfigureServices((_, services) =>
               {
-                  services.AddServiceRegistry().AddInMemoryStore();
+                  services.AddServiceRegistry(options => options.SelfRegistration.SelfRegister = false).AddInMemoryStore();
                   services.AddDataProtection().PersistKeysToInMemory();
               })
               .Configure(app => app.UseServiceRegistry()

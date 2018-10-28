@@ -48,7 +48,7 @@ namespace ServiceGovernance.Registry.Endpoints
             {
                 var registerToken = context.Request.Path.Value.Substring(1);
 
-                await _serviceRegistry.Unregister(registerToken);
+                await _serviceRegistry.UnregisterAsync(registerToken);
             }
         }
 

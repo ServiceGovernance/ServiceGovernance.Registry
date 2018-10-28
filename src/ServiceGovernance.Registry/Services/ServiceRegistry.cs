@@ -72,7 +72,7 @@ namespace ServiceGovernance.Registry.Services
         /// </summary>
         /// <param name="token">The registration token</param>
         /// <returns></returns>
-        public async Task Unregister(string token)
+        public async Task UnregisterAsync(string token)
         {
             var serviceRegistration = await _tokenProvider.ValidateAsync(token);
 

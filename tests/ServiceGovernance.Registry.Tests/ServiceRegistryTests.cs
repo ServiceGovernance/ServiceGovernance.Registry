@@ -174,7 +174,7 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Calls_TokenProvider()
             {
-                await _serviceRegistry.Unregister("abc");
+                await _serviceRegistry.UnregisterAsync("abc");
 
                 _tokenProvider.Verify(s => s.ValidateAsync("abc"), Times.Once);
             }
@@ -184,7 +184,7 @@ namespace ServiceGovernance.Registry.Tests
             {
                 _tokenProvider.Setup(s => s.ValidateAsync("abc")).ReturnsAsync(new ServiceRegistrationInputModel { ServiceId = "TestId" });
 
-                await _serviceRegistry.Unregister("abc");
+                await _serviceRegistry.UnregisterAsync("abc");
 
                 _store.Verify(s => s.FindByServiceIdAsync("TestId"), Times.Once);
             }
@@ -201,7 +201,7 @@ namespace ServiceGovernance.Registry.Tests
                 Service storedService = null;
                 _store.Setup(s => s.StoreAsync(It.IsAny<Service>())).Callback<Service>(s => storedService = s).Returns(Task.CompletedTask);
 
-                await _serviceRegistry.Unregister("abc");
+                await _serviceRegistry.UnregisterAsync("abc");
 
                 storedService.Endpoints.Should().HaveCount(1);
                 storedService.Endpoints.Should().Contain(new Uri("http://api01-qa.com"));
@@ -218,7 +218,7 @@ namespace ServiceGovernance.Registry.Tests
                 _tokenProvider.Setup(s => s.ValidateAsync("abc")).ReturnsAsync(registration);
                 _store.Setup(s => s.FindByServiceIdAsync("MyApi")).ReturnsAsync(existingService);
 
-                await _serviceRegistry.Unregister("abc");
+                await _serviceRegistry.UnregisterAsync("abc");
 
                 _store.Verify(s => s.RemoveAsync("MyApi"), Times.Once);
             }

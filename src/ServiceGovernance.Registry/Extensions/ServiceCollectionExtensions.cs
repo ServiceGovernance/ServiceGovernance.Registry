@@ -19,19 +19,10 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public static IServiceRegistryBuilder AddServiceRegistry(this IServiceCollection services, Action<ServiceRegistryOptions> setupAction = null)
         {
-            if (services == null)
-                throw new ArgumentNullException(nameof(services));
-
             var options = new ServiceRegistryOptions();
             setupAction?.Invoke(options);
 
-            services.AddSingleton(options);
-            services.AddScoped<IRegistrationTokenProvider, RegistrationTokenProvider>();
-            services.AddScoped<IServiceRegistry, ServiceRegistry>();
-            services.AddTransient<RegisterEndpoint>();
-            services.AddTransient<ServiceEndpoint>();
-
-            return new ServiceRegistryBuilder(services);
+            return services.AddServiceRegistry(options);
         }
 
         /// <summary>
@@ -62,8 +53,13 @@ namespace Microsoft.Extensions.DependencyInjection
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
 
+            options.Validate();
+
             services.AddSingleton(options);
             services.AddScoped<IRegistrationTokenProvider, RegistrationTokenProvider>();
+            services.AddScoped<IServiceRegistry, ServiceRegistry>();
+            services.AddTransient<RegisterEndpoint>();
+            services.AddTransient<ServiceEndpoint>();
 
             return new ServiceRegistryBuilder(services);
         }

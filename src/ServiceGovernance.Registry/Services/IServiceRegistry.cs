@@ -23,7 +23,7 @@ namespace ServiceGovernance.Registry.Services
         /// </summary>
         /// <param name="token">The registration token</param>
         /// <returns></returns>
-        Task Unregister(string token);
+        Task UnregisterAsync(string token);
 
         /// <summary>
         /// Retrieves a service by the given serviceId

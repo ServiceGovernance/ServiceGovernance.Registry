@@ -45,7 +45,7 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Returns_Token()
             {
-                var registration = new ServiceRegistrationBuilder().Build();
+                var registration = new ServiceRegistrationBuilder().ForFirstServiceInstance().Build();
                 var token = await _provider.GenerateAsync(registration);
 
                 token.Should().NotBeNullOrWhiteSpace();
@@ -54,7 +54,7 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Returns_Token_If_IpAddress_IsEmpty()
             {
-                var registration = new ServiceRegistrationBuilder().WithIpAddress("").Build();
+                var registration = new ServiceRegistrationBuilder().ForFirstServiceInstance().WithIpAddress("").Build();
                 var token = await _provider.GenerateAsync(registration);
 
                 token.Should().NotBeNullOrWhiteSpace();
@@ -63,7 +63,7 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Returns_Token_If_IpAddress_IsNull()
             {
-                var registration = new ServiceRegistrationBuilder().WithIpAddress(null).Build();
+                var registration = new ServiceRegistrationBuilder().ForFirstServiceInstance().WithIpAddress(null).Build();
                 var token = await _provider.GenerateAsync(registration);
 
                 token.Should().NotBeNullOrWhiteSpace();

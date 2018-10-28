@@ -84,7 +84,7 @@ If you wish to customize the in-memory caching behavior, you can replace the `IM
 
 ## UI
 
-There's no built-in UI to show the registered services. It's fairly easy to build one by yourself using the `IServiceStore`. Please have a look at the [sample](https://github.com/ServiceGovernance/ServiceGovernance.Registry/blob/master/samples/Registry/Controllers/HomeController.cs).
+There's no built-in UI to show the registered services. It's fairly easy to build one by yourself using the `IServiceRegistry`. Please have a look at the [sample](https://github.com/ServiceGovernance/ServiceGovernance.Registry/blob/master/samples/Registry/Controllers/HomeController.cs).
 
 ## APIs
 

@@ -16,7 +16,7 @@ namespace ServiceGovernance.Registry.Tests.Builder
             return new ServiceRegistrationInputModel
             {
                 ServiceId = "MyApi",
-                DisplayName = "New Service",
+                DisplayName = "First Api",
                 PublicUrls = new[] { new Uri("http://api-qa.com") }
             };
         }

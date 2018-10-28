@@ -1,26 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Registry.Models;
-using ServiceGovernance.Registry.Stores;
+using ServiceGovernance.Registry.Services;
+using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Registry.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IServiceStore _serviceStore;
+        private readonly IServiceRegistry _serviceRegistry;
 
-        public HomeController(IServiceStore serviceStore)
+        public HomeController(IServiceRegistry serviceRegistry)
         {
-            _serviceStore = serviceStore ?? throw new ArgumentNullException(nameof(serviceStore));
+            _serviceRegistry = serviceRegistry ?? throw new ArgumentNullException(nameof(serviceRegistry));
         }
 
         public async Task<IActionResult> Index()
         {
-            return View(await _serviceStore.GetAllAsync());
+            return View(await _serviceRegistry.GetAllServicesAsync());
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

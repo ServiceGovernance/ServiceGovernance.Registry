@@ -26,7 +26,7 @@ namespace ServiceGovernance.Registry.Tests
             var builder = new WebHostBuilder()
               .ConfigureServices((_, services) =>
               {
-                  services.AddServiceRegistry().AddInMemoryStore(new[] {
+                  services.AddServiceRegistry(options => options.SelfRegistration.SelfRegister = false).AddInMemoryStore(new[] {
                      new ServiceBuilder().Build(),
                    new ServiceBuilder().SecondService().WithoutPublicUrls().Build()
                   });
