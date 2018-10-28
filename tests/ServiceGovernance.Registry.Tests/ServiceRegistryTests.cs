@@ -4,7 +4,9 @@ using NUnit.Framework;
 using ServiceGovernance.Registry.Models;
 using ServiceGovernance.Registry.Services;
 using ServiceGovernance.Registry.Stores;
+using ServiceGovernance.Registry.Tests.Builder;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ServiceGovernance.Registry.Tests
@@ -29,12 +31,7 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Registers_New_Service_When_Not_Exists()
             {
-                var registration = new ServiceRegistrationInputModel
-                {
-                    ServiceId = "NewService",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api01-qa.com") }
-                };
+                var registration = new ServiceRegistrationBuilder().ForFirstServiceInstance().Build();
 
                 _store.Setup(s => s.FindByServiceIdAsync("NewService")).ReturnsAsync((Service)null);
                 Service newService = null;
@@ -51,19 +48,8 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Merges_Endpoints_When_Service_Already_Exists()
             {
-                var registration = new ServiceRegistrationInputModel
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api02-qa.com") }
-                };
-
-                var existingService = new Service
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api01-qa.com") }
-                };
+                var registration = new ServiceRegistrationBuilder().ForSecondServiceInstance().Build();
+                var existingService = new ServiceBuilder().ForFirstServiceInstance().Build();
 
                 _store.Setup(s => s.FindByServiceIdAsync("MyApi")).ReturnsAsync(existingService);
                 Service storedService = null;
@@ -81,21 +67,8 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Merges_IpAddresses_When_Service_Already_Exists()
             {
-                var registration = new ServiceRegistrationInputModel
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api02-qa.com") },
-                    IpAddress = "10.10.0.2"
-                };
-
-                var existingService = new Service
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api01-qa.com") },
-                    IpAddresses = new[] { "10.10.0.1" }
-                };
+                var registration = new ServiceRegistrationBuilder().ForSecondServiceInstance().Build();
+                var existingService = new ServiceBuilder().ForFirstServiceInstance().Build();
 
                 _store.Setup(s => s.FindByServiceIdAsync("MyApi")).ReturnsAsync(existingService);
                 Service storedService = null;
@@ -113,20 +86,8 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Adds_IpAddress_When_Service_Already_Exists_Without_Ip()
             {
-                var registration = new ServiceRegistrationInputModel
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api02-qa.com") },
-                    IpAddress = "10.10.0.2"
-                };
-
-                var existingService = new Service
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api01-qa.com") },
-                };
+                var registration = new ServiceRegistrationBuilder().ForSecondServiceInstance().Build();
+                var existingService = new ServiceBuilder().WithoutIpAddresses().Build();
 
                 _store.Setup(s => s.FindByServiceIdAsync("MyApi")).ReturnsAsync(existingService);
                 Service storedService = null;
@@ -143,22 +104,8 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Merges_PublicUrls_When_Service_Already_Exists()
             {
-                var registration = new ServiceRegistrationInputModel
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api02-qa.com") },
-                    PublicUrls = new[] { new Uri("http://api-qa.com") }
-                };
-
-                var existingService = new Service
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api01-qa.com") },
-                    IpAddresses = new[] { "10.10.0.1" },
-                    PublicUrls = new[] { new Uri("http://api1-qa.com") }
-                };
+                var registration = new ServiceRegistrationBuilder().ForSecondServiceInstance().WithPublicUrl(new Uri("http://otherurl.com")).Build();
+                var existingService = new ServiceBuilder().ForFirstServiceInstance().Build();
 
                 _store.Setup(s => s.FindByServiceIdAsync("MyApi")).ReturnsAsync(existingService);
                 Service storedService = null;
@@ -176,20 +123,8 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Adds_PublicUrls_When_Service_Already_Exists_Without_PublicUrls()
             {
-                var registration = new ServiceRegistrationInputModel
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api02-qa.com") },
-                    PublicUrls = new[] { new Uri("http://api-qa.com") }
-                };
-
-                var existingService = new Service
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api01-qa.com") },
-                };
+                var registration = new ServiceRegistrationBuilder().ForSecondServiceInstance().Build();
+                var existingService = new ServiceBuilder().WithoutPublicUrls().Build();
 
                 _store.Setup(s => s.FindByServiceIdAsync("MyApi")).ReturnsAsync(existingService);
                 Service storedService = null;
@@ -206,22 +141,8 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Do_Not_Duplicate_PublicUrls_When_Service_Already_Exists_With_Same_Urls()
             {
-                var registration = new ServiceRegistrationInputModel
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api02-qa.com") },
-                    PublicUrls = new[] { new Uri("http://api-qa.com") }
-                };
-
-                var existingService = new Service
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api01-qa.com") },
-                    IpAddresses = new[] { "10.10.0.1" },
-                    PublicUrls = new[] { new Uri("http://api-qa.com") }
-                };
+                var registration = new ServiceRegistrationBuilder().ForSecondServiceInstance().Build();
+                var existingService = new ServiceBuilder().ForSecondServiceInstance().Build();
 
                 _store.Setup(s => s.FindByServiceIdAsync("MyApi")).ReturnsAsync(existingService);
                 Service storedService = null;
@@ -240,12 +161,7 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Calls_TokenProvider()
             {
-                var registration = new ServiceRegistrationInputModel
-                {
-                    ServiceId = "NewService",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api01-qa.com") }
-                };
+                var registration = new ServiceRegistrationBuilder().ForFirstServiceInstance().Build();
 
                 await _serviceRegistry.RegisterAsync(registration);
 
@@ -276,23 +192,8 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Removes_Endpoints_And_IpAddress()
             {
-                var registration = new ServiceRegistrationInputModel
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api02-qa.com") },
-                    PublicUrls = new[] { new Uri("http://api-qa.com") },
-                    IpAddress = "10.10.0.2"
-                };
-
-                var existingService = new Service
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api01-qa.com"), new Uri("http://api02-qa.com") },
-                    IpAddresses = new[] { "10.10.0.1", "10.10.0.2" },
-                    PublicUrls = new[] { new Uri("http://api-qa.com") }
-                };
+                var registration = new ServiceRegistrationBuilder().ForSecondServiceInstance().Build();
+                var existingService = new ServiceBuilder().Build();
 
                 _tokenProvider.Setup(s => s.ValidateAsync("abc")).ReturnsAsync(registration);
                 _store.Setup(s => s.FindByServiceIdAsync("MyApi")).ReturnsAsync(existingService);
@@ -311,23 +212,8 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Removes_Service_When_No_Endpoints_Exists_Anymore()
             {
-                var registration = new ServiceRegistrationInputModel
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api02-qa.com") },
-                    PublicUrls = new[] { new Uri("http://api-qa.com") },
-                    IpAddress = "10.10.0.2"
-                };
-
-                var existingService = new Service
-                {
-                    ServiceId = "MyApi",
-                    DisplayName = "New Service",
-                    Endpoints = new[] { new Uri("http://api02-qa.com") },
-                    IpAddresses = new[] { "10.10.0.2" },
-                    PublicUrls = new[] { new Uri("http://api-qa.com") }
-                };
+                var registration = new ServiceRegistrationBuilder().ForSecondServiceInstance().Build();
+                var existingService = new ServiceBuilder().ForSecondServiceInstance().Build();
 
                 _tokenProvider.Setup(s => s.ValidateAsync("abc")).ReturnsAsync(registration);
                 _store.Setup(s => s.FindByServiceIdAsync("MyApi")).ReturnsAsync(existingService);
@@ -335,6 +221,68 @@ namespace ServiceGovernance.Registry.Tests
                 await _serviceRegistry.Unregister("abc");
 
                 _store.Verify(s => s.RemoveAsync("MyApi"), Times.Once);
+            }
+        }
+
+        public class GetServiceAsyncMethod : ServiceRegistryTests
+        {
+            [Test]
+            public async Task Returns_Null_When_Service_Does_Not_Exist()
+            {
+                _store.Setup(s => s.FindByServiceIdAsync(It.IsAny<string>())).ReturnsAsync((Service)null);
+
+                var service = await _serviceRegistry.GetServiceAsync("TestId");
+                service.Should().BeNull();
+            }
+
+            [Test]
+            public async Task Returns_Service_When_Service_Exists()
+            {
+                var existingService = new ServiceBuilder().Build();
+
+                _store.Setup(s => s.FindByServiceIdAsync("MyApi")).ReturnsAsync(existingService);
+
+                var service = await _serviceRegistry.GetServiceAsync("MyApi");
+                service.Should().NotBeNull();
+                service.Should().Be(existingService);
+            }
+
+            [Test]
+            public async Task Returns_With_Filled_PublicUrls_When_Only_Endpoints_Were_Registered()
+            {
+                var existingService = new ServiceBuilder().WithoutPublicUrls().Build();
+
+                _store.Setup(s => s.FindByServiceIdAsync("MyApi")).ReturnsAsync(existingService);
+
+                var service = await _serviceRegistry.GetServiceAsync("MyApi");
+                service.Should().NotBeNull();
+                service.PublicUrls.Should().HaveCount(2);
+                service.PublicUrls.Should().Contain(existingService.Endpoints);
+            }
+        }
+
+        public class GetAllServicesAsyncMethod : ServiceRegistryTests
+        {
+            [Test]
+            public async Task Returns_Service_When_Service_Exists()
+            {
+                _store.Setup(s => s.GetAllAsync()).ReturnsAsync(new[] { new Service(), new Service() });
+
+                var services = await _serviceRegistry.GetAllServicesAsync();
+                services.Should().HaveCount(2);
+            }
+
+            [Test]
+            public async Task Returns_With_Filled_PublicUrls_When_Only_Endpoints_Were_Registered()
+            {
+                var existingService = new ServiceBuilder().WithoutPublicUrls().Build();
+
+                _store.Setup(s => s.GetAllAsync()).ReturnsAsync(new[] { existingService });
+
+                var services = (await _serviceRegistry.GetAllServicesAsync()).ToList();
+                services.Should().HaveCount(1);
+                services[0].PublicUrls.Should().HaveCount(2);
+                services[0].PublicUrls.Should().Contain(existingService.Endpoints);
             }
         }
     }

@@ -29,6 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IRegistrationTokenProvider, RegistrationTokenProvider>();
             services.AddScoped<IServiceRegistry, ServiceRegistry>();
             services.AddTransient<RegisterEndpoint>();
+            services.AddTransient<ServiceEndpoint>();
 
             return new ServiceRegistryBuilder(services);
         }

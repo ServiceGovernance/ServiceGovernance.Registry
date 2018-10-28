@@ -5,6 +5,7 @@ using Moq;
 using NUnit.Framework;
 using ServiceGovernance.Registry.Models;
 using ServiceGovernance.Registry.Services;
+using ServiceGovernance.Registry.Tests.Builder;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,13 +45,8 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Returns_Token()
             {
-                var token = await _provider.GenerateAsync(new ServiceRegistrationInputModel()
-                {
-                    ServiceId = "TestService",
-                    DisplayName = "Test Service",
-                    Endpoints = new Uri[] { new Uri("http://test.com") },
-                    IpAddress = "10.10.0.2"
-                });
+                var registration = new ServiceRegistrationBuilder().Build();
+                var token = await _provider.GenerateAsync(registration);
 
                 token.Should().NotBeNullOrWhiteSpace();
             }
@@ -58,13 +54,8 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Returns_Token_If_IpAddress_IsEmpty()
             {
-                var token = await _provider.GenerateAsync(new ServiceRegistrationInputModel()
-                {
-                    ServiceId = "TestService",
-                    DisplayName = "Test Service",
-                    Endpoints = new Uri[] { new Uri("http://test.com") },
-                    IpAddress = ""
-                });
+                var registration = new ServiceRegistrationBuilder().WithIpAddress("").Build();
+                var token = await _provider.GenerateAsync(registration);
 
                 token.Should().NotBeNullOrWhiteSpace();
             }
@@ -72,12 +63,8 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Returns_Token_If_IpAddress_IsNull()
             {
-                var token = await _provider.GenerateAsync(new ServiceRegistrationInputModel()
-                {
-                    ServiceId = "TestService",
-                    DisplayName = "Test Service",
-                    Endpoints = new Uri[] { new Uri("http://test.com") }                    
-                });
+                var registration = new ServiceRegistrationBuilder().WithIpAddress(null).Build();
+                var token = await _provider.GenerateAsync(registration);
 
                 token.Should().NotBeNullOrWhiteSpace();
             }
@@ -88,21 +75,16 @@ namespace ServiceGovernance.Registry.Tests
             [Test]
             public async Task Returns_Service_For_Valid_Token()
             {
-                var token = await _provider.GenerateAsync(new ServiceRegistrationInputModel()
-                {
-                    ServiceId = "TestService",
-                    DisplayName = "Test Service",
-                    Endpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") },
-                    IpAddress = "10.10.0.1"
-                });
+                var registration = new ServiceRegistrationBuilder().ForFirstServiceInstance().Build();
+
+                var token = await _provider.GenerateAsync(registration);
 
                 var service = await _provider.ValidateAsync(token);
                 service.Should().NotBeNull();
-                service.ServiceId.Should().Be("TestService");
-                service.Endpoints.Should().HaveCount(2);
-                service.Endpoints[0].Should().Be(new Uri("http://test.com"));
-                service.Endpoints[1].Should().Be(new Uri("https://otherurl.com:5000"));
-                service.IpAddress.Should().Be("10.10.0.1");                
+                service.ServiceId.Should().Be(registration.ServiceId);
+                service.Endpoints.Should().HaveCount(registration.Endpoints.Length);
+                service.Endpoints.Should().Contain(registration.Endpoints);  
+                service.IpAddress.Should().Be(registration.IpAddress);                
             }
 
             [Test]
@@ -125,13 +107,8 @@ namespace ServiceGovernance.Registry.Tests
                 _options.RegisterTokenLifespan = TimeSpan.FromMilliseconds(20);
                 CreateProvider();
 
-                var token = await _provider.GenerateAsync(new ServiceRegistrationInputModel()
-                {
-                    ServiceId = "TestService",
-                    DisplayName = "Test Service",
-                    Endpoints = new Uri[] { new Uri("http://test.com"), new Uri("https://otherurl.com:5000") },
-                    IpAddress = "10.10.0.1"
-                });
+                var registration = new ServiceRegistrationBuilder().ForFirstServiceInstance().Build();
+                var token = await _provider.GenerateAsync(registration);
 
                 var service = await _provider.ValidateAsync(token);
                 service.Should().NotBeNull();

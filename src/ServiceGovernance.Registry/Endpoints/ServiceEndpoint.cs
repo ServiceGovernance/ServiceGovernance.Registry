@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using ServiceGovernance.Registry.Stores;
+using ServiceGovernance.Registry.Services;
 using System.Threading.Tasks;
 
 namespace ServiceGovernance.Registry.Endpoints
@@ -7,47 +7,41 @@ namespace ServiceGovernance.Registry.Endpoints
     /// <summary>
     /// Middleware providing the "service" API endpoint
     /// </summary>
-    public class ServiceEndpoint
+    public class ServiceEndpoint : IMiddleware
     {
-        private readonly RequestDelegate _next;
+        private readonly IServiceRegistry _serviceRegistry;
 
         /// <summary>
         /// Gets the url path this endpoint is listening on
         /// </summary>
         public static PathString Path { get; } = new PathString("/v1/service");
 
-        public ServiceEndpoint(RequestDelegate next)
+        public ServiceEndpoint(IServiceRegistry serviceRegistry)
         {
-            _next = next;
+            _serviceRegistry = serviceRegistry ?? throw new System.ArgumentNullException(nameof(serviceRegistry));
         }
 
-        public async Task InvokeAsync(HttpContext context, IServiceStore store)
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             if (HttpMethods.IsGet(context.Request.Method))
             {
                 if (!context.Request.Path.HasValue)
-                    await GetAllServicesAsync(context, store);
+                    await GetAllServicesAsync(context);
                 else
-                    await GetServiceAsync(context, store, context.Request.Path.Value.Substring(1));
+                    await GetServiceAsync(context, context.Request.Path.Value.Substring(1));
             }
             else
             {
-                await _next.Invoke(context);
+                await next.Invoke(context);
             }
         }
 
-        private async Task GetServiceAsync(HttpContext context, IServiceStore store, string serviceId)
+        private async Task GetServiceAsync(HttpContext context, string serviceId)
         {
-            var service = await store.FindByServiceIdAsync(serviceId);
+            var service = await _serviceRegistry.GetServiceAsync(serviceId);
 
             if (service != null)
             {
-                // publish endpoints as public urls if nothing is registered
-                if (service.PublicUrls == null || service.PublicUrls.Length == 0)
-                {
-                    service.PublicUrls = service.Endpoints;
-                }
-
                 await context.WriteModelAsync(service);
             }
             else
@@ -56,11 +50,9 @@ namespace ServiceGovernance.Registry.Endpoints
             }
         }
 
-        private async Task GetAllServicesAsync(HttpContext context, IServiceStore store)
+        private async Task GetAllServicesAsync(HttpContext context)
         {
-            var services = await store.GetAllAsync();
-
-            await context.WriteModelAsync(services);
+            await context.WriteModelAsync(await _serviceRegistry.GetAllServicesAsync());
         }
     }
 }

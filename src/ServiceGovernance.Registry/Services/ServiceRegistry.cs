@@ -1,6 +1,7 @@
 ﻿using ServiceGovernance.Registry.Models;
 using ServiceGovernance.Registry.Stores;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -20,6 +21,11 @@ namespace ServiceGovernance.Registry.Services
             _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
         }
 
+        /// <summary>
+        /// Registers a new service
+        /// </summary>
+        /// <param name="registration">The registration information</param>
+        /// <returns>A token which can be used to unregister the service</returns>
         public async Task<string> RegisterAsync(ServiceRegistrationInputModel registration)
         {
             var service = await _store.FindByServiceIdAsync(registration.ServiceId);
@@ -61,6 +67,11 @@ namespace ServiceGovernance.Registry.Services
             return await _tokenProvider.GenerateAsync(registration);
         }
 
+        /// <summary>
+        /// Unregisters a service
+        /// </summary>
+        /// <param name="token">The registration token</param>
+        /// <returns></returns>
         public async Task Unregister(string token)
         {
             var serviceRegistration = await _tokenProvider.ValidateAsync(token);
@@ -83,6 +94,44 @@ namespace ServiceGovernance.Registry.Services
                         await _store.RemoveAsync(serviceRegistration.ServiceId);
                 }
             }
+        }
+
+        /// <summary>
+        /// Retrieves a service by the given serviceId
+        /// </summary>
+        /// <param name="serviceId">The unique serviceId</param>
+        /// <returns>Null if no service was found by serviceId</returns>
+        public async Task<Service> GetServiceAsync(string serviceId)
+        {
+            var service = await _store.FindByServiceIdAsync(serviceId);
+
+            return EnsurePublicUrlsExists(service);
+        }
+
+        /// <summary>
+        /// Returns all registered services 
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<Service>> GetAllServicesAsync()
+        {
+            var services = await _store.GetAllAsync();
+
+            return services.Select(EnsurePublicUrlsExists);
+        }
+
+        /// <summary>
+        /// Publish endpoints as public urls if nothing is registered 
+        /// </summary>
+        /// <param name="service"></param>
+        /// <returns></returns>
+        private static Service EnsurePublicUrlsExists(Service service)
+        {
+            if (service != null && (service.PublicUrls == null || service.PublicUrls.Length == 0))
+            {
+                service.PublicUrls = service.Endpoints;
+            }
+
+            return service;
         }
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using ServiceGovernance.Registry.Models;
+using ServiceGovernance.Registry.Tests.Builder;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -26,20 +27,8 @@ namespace ServiceGovernance.Registry.Tests
               .ConfigureServices((_, services) =>
               {
                   services.AddServiceRegistry().AddInMemoryStore(new[] {
-                     new Service {
-                      ServiceId = "Api1",
-                      DisplayName = "First Api",
-                      Endpoints = new []{ new Uri("http://api1-01.com"), new Uri("http://api1-02.com")},
-                      IpAddresses = new[]{ "10.10.0.1"},
-                      PublicUrls = new Uri[]{ new Uri("http://api1.com")}
-                  },
-                   new Service
-                   {
-                       ServiceId = "Api2",
-                       DisplayName = "Second Api",
-                       Endpoints = new[] { new Uri("http://api2-01.com"), new Uri("http://api2-02.com") },
-                       IpAddresses = new[]{ "10.10.0.2", "10.10.0.3"  }
-                   }
+                     new ServiceBuilder().Build(),
+                   new ServiceBuilder().SecondService().WithoutPublicUrls().Build()
                   });
                   services.AddDataProtection().PersistKeysToInMemory();
               })
@@ -62,7 +51,7 @@ namespace ServiceGovernance.Registry.Tests
                 content.Should().NotBeNullOrWhiteSpace();
                 var services = JsonConvert.DeserializeObject<List<Service>>(content);
                 services.Should().HaveCount(2);
-                services[0].ServiceId.Should().Be("Api1");
+                services[0].ServiceId.Should().Be("MyApi");
                 services[0].DisplayName.Should().Be("First Api");
 
                 services[1].ServiceId.Should().Be("Api2");
@@ -84,11 +73,11 @@ namespace ServiceGovernance.Registry.Tests
                 service.ServiceId.Should().Be("Api2");
                 service.DisplayName.Should().Be("Second Api");
                 service.Endpoints.Should().HaveCount(2);
-                service.Endpoints[0].Should().Be(new Uri("http://api2-01.com"));
-                service.Endpoints[1].Should().Be(new Uri("http://api2-02.com"));
+                service.Endpoints[0].Should().Be(new Uri("http://api201-qa.com"));
+                service.Endpoints[1].Should().Be(new Uri("http://api202-qa.com"));
                 service.IpAddresses.Should().HaveCount(2);
-                service.IpAddresses[0].Should().Be("10.10.0.2");
-                service.IpAddresses[1].Should().Be("10.10.0.3");
+                service.IpAddresses[0].Should().Be("10.10.0.3");
+                service.IpAddresses[1].Should().Be("10.10.0.4");
             }
 
             [Test]
@@ -108,8 +97,8 @@ namespace ServiceGovernance.Registry.Tests
                 content.Should().NotBeNullOrWhiteSpace();
                 var service = JsonConvert.DeserializeObject<Service>(content);
                 service.PublicUrls.Should().HaveCount(2);
-                service.PublicUrls[0].Should().Be(new Uri("http://api2-01.com"));
-                service.PublicUrls[1].Should().Be(new Uri("http://api2-02.com"));
+                service.PublicUrls[0].Should().Be(new Uri("http://api201-qa.com"));
+                service.PublicUrls[1].Should().Be(new Uri("http://api202-qa.com"));
             }
         }
     }

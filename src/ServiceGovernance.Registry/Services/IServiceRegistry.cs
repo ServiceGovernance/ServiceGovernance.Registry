@@ -24,5 +24,18 @@ namespace ServiceGovernance.Registry.Services
         /// <param name="token">The registration token</param>
         /// <returns></returns>
         Task Unregister(string token);
+
+        /// <summary>
+        /// Retrieves a service by the given serviceId
+        /// </summary>
+        /// <param name="serviceId">The unique serviceId</param>
+        /// <returns>Null if no service was found by serviceId</returns>
+        Task<Service> GetServiceAsync(string serviceId);
+
+        /// <summary>
+        /// Returns all registered services 
+        /// </summary>
+        /// <returns></returns>
+        Task<IEnumerable<Service>> GetAllServicesAsync();
     }
 }
