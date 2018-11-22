@@ -33,8 +33,6 @@ This will return you a builder object that in turn has a number of convenience m
 ## In-Memory stores
 
 The "in-memory" configuration APIs allow for configuring ServiceRegistry from an in-memory list of configuration objects.
-These "in-memory" collections can be hard-coded in the hosting application, or could be loaded dynamically from a configuration file or a database.
-By design, though, these collections are only created when the hosting application is starting up.
 
 Use of these configuration APIs are designed for use when prototyping, developing, and/or testing where it is not necessary to dynamically consult database at runtime for the configuration data.
 
@@ -56,10 +54,12 @@ Available persistence libraries are:
 * [Entity Framework](https://github.com/ServiceGovernance/ServiceGovernance.Registry.EntityFramework)
 * [Redis](https://github.com/ServiceGovernance/ServiceGovernance.Registry.Redis)
 
-## Additional services
+### Custom stores
+
+Use one of the following extension method to register your custom store:
 
 * `AddServiceStore`
-    Adds `IServiceStore` implementation for reading and storing services (You can also use the already implemented versions for EntityFramework or Redis).
+    Adds `IServiceStore` implementation for reading and storing services.
 
 ## Caching
 
@@ -98,7 +98,7 @@ This endpoint registers a service in the registry.
 |-|-|-|
 |/v1/register|POST|application/json
 
-### Parameter
+#### Parameter
 
 ```json
 {
@@ -110,7 +110,7 @@ This endpoint registers a service in the registry.
 }
 ```
 
-### Response
+#### Response
 
 `text/plain` HTTP 200
 
@@ -124,7 +124,7 @@ This endpoint removes a service registration.
 |-|-|-|
 |/v1/register|DELETE|text/plain
 
-### Parameter
+#### Parameter
 
 The token returned from the service registration call.
 
@@ -132,7 +132,7 @@ The token returned from the service registration call.
 dfg54dfg54df3g21df53g4df3g54
 ```
 
-### Response
+#### Response
 
 `text/plain` HTTP 200
 
@@ -144,10 +144,10 @@ This endpoint returns the registered service.
 |-|-|-|
 |/v1/service/{serviceId}|Get|
 
-### Parameter
+#### Parameter
 `serviceid` The service you want to retrieve
 
-### Response
+#### Response
 
 `application/json` HTTP 200
 
@@ -172,9 +172,9 @@ This endpoint returns all registered services.
 |-|-|-|
 |/v1/service|Get|
 
-### Parameter
+#### Parameter
 
-### Response
+#### Response
 
 `application/json` HTTP 200
 

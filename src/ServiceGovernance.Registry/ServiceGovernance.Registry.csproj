@@ -13,6 +13,7 @@
     <PackageIconUrl>https://github.com/ServiceGovernance/Home/raw/master/artwork/logos/logo_128.png</PackageIconUrl>
     <PackageLicenseUrl>https://github.com/ServiceGovernance/ServiceGovernance.Registry/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/ServiceGovernance/ServiceGovernance.Registry</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -31,7 +32,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="7.7.0.7192">
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="7.8.0.7320">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
